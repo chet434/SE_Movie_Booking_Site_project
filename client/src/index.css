@@ -130,6 +130,7 @@ html {
 .cs-focusable:focus-visible {
   outline: 3px solid var(--cs-focus-ring);
   outline-offset: 3px;
+  border-radius: inherit;
 }
 
 .cs-button-primary {
@@ -247,6 +248,34 @@ html {
 /* Smooth transitions for links */
 a {
   transition: color var(--cs-transition-fast);
+}
+
+/* Dashboard Motion Classes */
+.hover-nav-item:hover {
+  background-color: var(--cs-surface-muted);
+  color: var(--cs-text-primary) !important;
+}
+
+.hover-bg-light:hover {
+  background-color: var(--cs-surface-muted);
+}
+
+.hover-opacity-100 {
+  transition: opacity 150ms ease;
+}
+
+.hover-opacity-100:hover {
+  opacity: 1 !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Typography styles */

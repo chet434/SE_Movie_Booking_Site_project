@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
 // Public pages
-import Home from './pages/Home';
+import DashboardPage from './features/dashboard/DashboardPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MovieDetails from './pages/MovieDetails';
@@ -27,23 +27,29 @@ import ManageShows from './pages/admin/ManageShows';
 import ManageBookings from './pages/admin/ManageBookings';
 import ManageUsers from './pages/admin/ManageUsers';
 
-function App() {
+const AppContent = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  
+  // Dashboard handles its own layout, so we don't wrap it in cs-workspace-wrapper
+  if (location.pathname === '/' || location.pathname === '/movies') {
+    return <DashboardPage />;
+  }
+
+  // Other routes use the standard layout
   return (
-    <AuthProvider>
-      <div className="cs-workspace-wrapper">
-        <Navbar />
+    <div className="cs-workspace-wrapper d-flex flex-column">
+      <Navbar />
+      <main className="flex-grow-1">
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/movies" element={<Home />} />
+          <Route path="/movies/:id" element={<MovieDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/movies/:id" element={<MovieDetails />} />
-
+          
           {/* Protected Routes */}
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-          <Route path="/seat-selection/:showId" element={<SeatSelectionPage />} />
+          <Route path="/seat-selection/:showId" element={<ProtectedRoute><SeatSelectionPage /></ProtectedRoute>} />
           <Route path="/payment" element={<ProtectedRoute><BookingSummary /></ProtectedRoute>} />
           <Route path="/booking-confirmation/:id" element={<ProtectedRoute><TicketPage /></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
@@ -58,9 +64,19 @@ function App() {
             <Route path="users" element={<ManageUsers />} />
           </Route>
         </Routes>
-      </div>
+      </main>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
     </AuthProvider>
   );
-}
+};
 
 export default App;
