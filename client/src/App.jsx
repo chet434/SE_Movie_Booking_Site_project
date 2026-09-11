@@ -13,9 +13,9 @@ import MovieDetails from './pages/MovieDetails';
 // Protected pages
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
-import SeatSelection from './pages/SeatSelection';
+import SeatSelectionPage from './features/seat-selection/SeatSelectionPage';
 import BookingSummary from './pages/BookingSummary';
-import BookingConfirmation from './pages/BookingConfirmation';
+import TicketPage from './features/ticket/TicketPage';
 import MyBookings from './pages/MyBookings';
 
 // Admin pages
@@ -43,9 +43,9 @@ function App() {
           {/* Protected Routes */}
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-          <Route path="/seat-selection/:showId" element={<SeatSelection />} />
+          <Route path="/seat-selection/:showId" element={<SeatSelectionPage />} />
           <Route path="/payment" element={<ProtectedRoute><BookingSummary /></ProtectedRoute>} />
-          <Route path="/booking-confirmation/:id" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
+          <Route path="/booking-confirmation/:id" element={<ProtectedRoute><TicketPage /></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
 
           {/* Admin Routes */}

@@ -258,3 +258,40 @@ h1, h2, h3, h4, h5, h6 {
 .text-muted {
   color: var(--cs-text-secondary) !important;
 }
+
+/* Print Stylesheet */
+@media print {
+  /* Hide unnecessary elements */
+  .no-print,
+  .navbar,
+  .cs-workspace-wrapper > nav,
+  header,
+  footer {
+    display: none !important;
+  }
+
+  /* Force white paper and black text */
+  body, html, .cs-workspace-wrapper, .cs-panel {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Specific ticket styles for printing */
+  #printable-ticket, .printable-ticket {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    page-break-inside: avoid !important;
+    border: 1px solid #000 !important;
+  }
+  
+  /* Ensure colors print for the separator and barcode */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
