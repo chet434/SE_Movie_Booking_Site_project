@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   IconTicket, 
-  IconPopcorn, 
+  IconCup, 
   IconGift, 
   IconCreditCard, 
   IconDeviceGamepad2,
@@ -61,7 +61,7 @@ const NextBookingCard = () => {
 
 const QuickActionsGrid = () => {
   const actions = [
-    { icon: IconPopcorn, label: 'F&B', color: '#e3a03d' },
+    { icon: IconCup, label: 'F&B', color: '#e3a03d' },
     { icon: IconGift, label: 'Gifts', color: '#ef6c7a' },
     { icon: IconCreditCard, label: 'Offers', color: '#54b98a' },
     { icon: IconDeviceGamepad2, label: 'Play', color: '#67b7e8' }

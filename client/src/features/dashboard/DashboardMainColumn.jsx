@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { IconChevronLeft, IconChevronRight, IconPlay, IconTicket } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconPlayerPlay, IconTicket } from '@tabler/icons-react';
 
 const HeroCarousel = () => {
   return (
@@ -33,7 +33,7 @@ const HeroCarousel = () => {
             <IconTicket size={18} /> Book Now
           </Link>
           <button className="btn btn-outline-light d-flex align-items-center gap-2 fw-bold" style={{ borderRadius: 'var(--cs-radius-control)' }}>
-            <IconPlay size={18} /> Watch Trailer
+            <IconPlayerPlay size={18} /> Watch Trailer
           </button>
         </div>
       </div>
