@@ -51,31 +51,23 @@ const Home = () => {
 
   return (
     <div>
-      {/* Hero Banner */}
-      <div className="bg-dark text-white py-5 mb-4"
-        style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
-        }}>
-        <div className="container text-center">
-          <h1 className="fw-bold display-5 mb-2">
-            <FaFilm className="text-warning me-2" />
-            Book Your Movie Tickets
-          </h1>
-          <p className="text-muted mb-4">Find movies, select seats, and book in minutes</p>
-          <div className="row justify-content-center">
-            <div className="col-md-6">
-              <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-            </div>
+      <div className="mb-4">
+        <h1 className="fw-bold mb-2">Movies</h1>
+        <p className="text-muted mb-4">Find movies, select seats, and book tickets</p>
+        <div className="row g-3">
+          <div className="col-12 col-md-6">
+            <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+          </div>
+          <div className="col-12 col-md-6">
+            <FilterPanel filters={filters} setFilters={setFilters} locations={locations} />
           </div>
         </div>
       </div>
 
-      <div className="container">
-        <FilterPanel filters={filters} setFilters={setFilters} locations={locations} />
-
+      <div>
         {loading ? (
           <div className="text-center py-5">
-            <div className="spinner-border text-warning" role="status">
+            <div className="spinner-border text-secondary" role="status">
               <span className="visually-hidden">Loading...</span>
             </div>
           </div>
@@ -84,15 +76,15 @@ const Home = () => {
             <FaFilm size={48} className="text-muted mb-3" />
             <h5 className="text-muted">
               {searchQuery || filters.genre || filters.language
-                ? 'No movies found for the selected filters.'
+                ? 'No movies match these filters. Try another date or clear filters.'
                 : 'No movies available.'}
             </h5>
           </div>
         ) : (
           <>
-            <h4 className="fw-bold mb-3">
+            <h4 className="fw-bold mb-3 d-flex align-items-center gap-2">
               {searchQuery ? `Results for "${searchQuery}"` : 'Now Showing'}
-              <span className="badge bg-warning text-dark ms-2">{movies.length}</span>
+              <span className="badge rounded-pill" style={{ backgroundColor: 'var(--cs-surface-muted)', color: 'var(--cs-text-primary)' }}>{movies.length}</span>
             </h4>
             <div className="row">
               {movies.map(movie => (

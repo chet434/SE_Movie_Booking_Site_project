@@ -94,15 +94,14 @@ const BookingSummary = () => {
 
   return (
     <div className="container py-4">
-      <Link to={`/seat-selection/${bookingData.showId}`} className="text-warning text-decoration-none mb-3 d-inline-block">
-        <FaArrowLeft className="me-1" /> Back to Seats
+      <Link to={`/seat-selection/${bookingData.showId}`} className="text-decoration-none mb-4 d-inline-flex align-items-center gap-1 fw-bold" style={{ color: 'var(--cs-text-secondary)' }}>
+        <FaArrowLeft /> Back to Seats
       </Link>
 
       <div className="row g-4">
-        {/* Booking Details */}
         <div className="col-lg-7">
-          <div className="card border-0 shadow-sm" style={{ borderRadius: '16px' }}>
-            <div className="card-body p-4">
+          <div className="cs-panel mb-4">
+            <div className="p-4">
               <h5 className="fw-bold mb-3">Booking Summary</h5>
 
               <div className="d-flex gap-3 mb-3">
@@ -134,17 +133,17 @@ const BookingSummary = () => {
                 <span>Convenience Fee</span>
                 <span>₹{bookingData.convenienceFee}</span>
               </div>
-              <hr />
-              <div className="d-flex justify-content-between fw-bold">
+              <hr style={{ borderColor: 'var(--cs-border)' }} />
+              <div className="d-flex justify-content-between fw-bold" style={{ fontSize: '1.1rem' }}>
                 <span>Total Amount</span>
-                <span className="text-success">₹{bookingData.totalAmount.toLocaleString('en-IN')}</span>
+                <span style={{ color: 'var(--cs-action-primary)' }}>₹{bookingData.totalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
 
           {/* Customer Info */}
-          <div className="card border-0 shadow-sm mt-3" style={{ borderRadius: '16px' }}>
-            <div className="card-body p-4">
+          <div className="cs-panel mt-4">
+            <div className="p-4">
               <h6 className="fw-bold mb-3">Customer Details</h6>
               <div className="row g-2">
                 <div className="col-md-4">
@@ -166,42 +165,50 @@ const BookingSummary = () => {
 
         {/* Payment */}
         <div className="col-lg-5">
-          <div className="card border-0 shadow-sm" style={{ borderRadius: '16px' }}>
-            <div className="card-body p-4">
+          <div className="cs-panel">
+            <div className="p-4">
               <h5 className="fw-bold mb-3">Payment Method</h5>
 
               {error && <div className="alert alert-danger py-2 small">{error}</div>}
 
               <div className="d-flex flex-column gap-2 mb-4">
-                {PAYMENT_METHODS.map(method => (
-                  <button
-                    key={method.value}
-                    className={`btn d-flex align-items-center gap-2 text-start ${paymentMethod === method.value ? 'btn-warning' : 'btn-outline-secondary'}`}
-                    onClick={() => setPaymentMethod(method.value)}
-                    style={{ borderRadius: '10px' }}
-                  >
-                    {method.icon}
-                    <span>{method.label}</span>
-                    {paymentMethod === method.value && <FaCheckCircle className="ms-auto text-dark" />}
-                  </button>
-                ))}
+                {PAYMENT_METHODS.map(method => {
+                  const isSelected = paymentMethod === method.value;
+                  return (
+                    <button
+                      key={method.value}
+                      className="btn d-flex align-items-center gap-3 text-start"
+                      onClick={() => setPaymentMethod(method.value)}
+                      style={{ 
+                        borderRadius: 'var(--cs-radius-control)',
+                        minHeight: '48px',
+                        backgroundColor: isSelected ? 'var(--cs-accent-soft)' : 'var(--cs-surface)',
+                        color: isSelected ? 'var(--cs-accent-active)' : 'var(--cs-text-primary)',
+                        border: `1px solid ${isSelected ? 'var(--cs-accent)' : 'var(--cs-border)'}`
+                      }}
+                    >
+                      {method.icon}
+                      <span className="fw-semibold">{method.label}</span>
+                      {isSelected && <FaCheckCircle className="ms-auto" style={{ color: 'var(--cs-accent-active)' }} />}
+                    </button>
+                  );
+                })}
               </div>
 
               <button
-                className="btn btn-success w-100 fw-bold py-2 mb-2"
+                className="cs-button-primary w-100 fw-bold py-2 mb-3"
                 onClick={() => handlePayment(false)}
                 disabled={paying || !paymentMethod}
-                style={{ borderRadius: '10px' }}
               >
                 {paying ? <span className="spinner-border spinner-border-sm me-2"></span> : null}
                 Pay ₹{bookingData.totalAmount.toLocaleString('en-IN')}
               </button>
 
               <button
-                className="btn btn-outline-danger w-100 btn-sm"
+                className="cs-button-secondary w-100"
                 onClick={() => handlePayment(true)}
                 disabled={paying}
-                style={{ borderRadius: '10px' }}
+                style={{ borderColor: 'var(--cs-danger)', color: 'var(--cs-danger)' }}
               >
                 Simulate Payment Failure
               </button>

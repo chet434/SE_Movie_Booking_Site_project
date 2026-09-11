@@ -30,33 +30,35 @@ import ManageUsers from './pages/admin/ManageUsers';
 function App() {
   return (
     <AuthProvider>
-      <Navbar />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/movies" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/movies/:id" element={<MovieDetails />} />
+      <div className="cs-workspace-wrapper">
+        <Navbar />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/movies" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/movies/:id" element={<MovieDetails />} />
 
-        {/* Protected Routes */}
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-        <Route path="/seat-selection/:showId" element={<SeatSelection />} />
-        <Route path="/payment" element={<ProtectedRoute><BookingSummary /></ProtectedRoute>} />
-        <Route path="/booking-confirmation/:id" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
-        <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+          {/* Protected Routes */}
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+          <Route path="/seat-selection/:showId" element={<SeatSelection />} />
+          <Route path="/payment" element={<ProtectedRoute><BookingSummary /></ProtectedRoute>} />
+          <Route path="/booking-confirmation/:id" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
+          <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="movies" element={<ManageMovies />} />
-          <Route path="theatres" element={<ManageTheatres />} />
-          <Route path="shows" element={<ManageShows />} />
-          <Route path="bookings" element={<ManageBookings />} />
-          <Route path="users" element={<ManageUsers />} />
-        </Route>
-      </Routes>
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="movies" element={<ManageMovies />} />
+            <Route path="theatres" element={<ManageTheatres />} />
+            <Route path="shows" element={<ManageShows />} />
+            <Route path="bookings" element={<ManageBookings />} />
+            <Route path="users" element={<ManageUsers />} />
+          </Route>
+        </Routes>
+      </div>
     </AuthProvider>
   );
 }

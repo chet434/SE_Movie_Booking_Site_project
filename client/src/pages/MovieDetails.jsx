@@ -95,49 +95,48 @@ const MovieDetails = () => {
   }
 
   return (
-    <div>
-      {/* Movie Banner */}
-      <div className="bg-dark text-white py-4"
-        style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-        <div className="container">
-          <Link to="/" className="text-warning text-decoration-none mb-3 d-inline-block">
-            <FaArrowLeft className="me-1" /> Back to Movies
-          </Link>
-          <div className="row g-4">
-            <div className="col-md-3">
-              <img src={movie.poster} alt={movie.title}
-                className="img-fluid rounded shadow"
-                style={{ maxHeight: '400px', width: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450?text=No+Poster'; }} />
-            </div>
-            <div className="col-md-9">
-              <h2 className="fw-bold">{movie.title}</h2>
-              <div className="d-flex flex-wrap gap-2 mb-2">
-                {movie.genre?.map(g => (
-                  <span key={g} className="badge bg-secondary">{g}</span>
-                ))}
-              </div>
-              <div className="d-flex flex-wrap gap-3 mb-3 text-muted">
-                <span><FaStar className="text-warning me-1" />{movie.rating?.toFixed(1)}/10</span>
-                <span><FaClock className="me-1" />{movie.duration}</span>
-                <span><FaGlobe className="me-1" />{movie.language}</span>
-                <span><FaCalendar className="me-1" />{new Date(movie.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              </div>
-              <p className="mb-3" style={{ color: '#ccc' }}>{movie.description}</p>
-              {movie.trailerUrl && (
-                <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer"
-                  className="btn btn-outline-light btn-sm">
-                  <FaPlay className="me-1" /> Watch Trailer
-                </a>
-              )}
-            </div>
+    <div className="py-2">
+      <Link to="/" className="text-decoration-none mb-4 d-inline-flex align-items-center gap-1 fw-bold" style={{ color: 'var(--cs-text-secondary)' }}>
+        <FaArrowLeft /> Back to Movies
+      </Link>
+      
+      <div className="row g-4 mb-5">
+        <div className="col-12 col-md-4 col-lg-3" style={{ maxWidth: '280px' }}>
+          <img src={movie.poster} alt={`Poster for ${movie.title}`}
+            className="w-100"
+            style={{ aspectRatio: '2/3', objectFit: 'cover', borderRadius: 'var(--cs-radius-card)' }}
+            onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450?text=No+Poster'; }} />
+        </div>
+        <div className="col-12 col-md-8 col-lg-9">
+          <h1 className="fw-bold mb-3">{movie.title}</h1>
+          <div className="d-flex flex-wrap gap-2 mb-3">
+            {movie.genre?.map(g => (
+              <span key={g} className="badge rounded-pill" style={{ backgroundColor: 'var(--cs-surface-muted)', color: 'var(--cs-text-primary)' }}>{g}</span>
+            ))}
           </div>
+          <div className="d-flex flex-wrap gap-3 mb-4 text-muted fw-bold">
+            <span className="d-flex align-items-center gap-1"><FaStar style={{ color: 'var(--cs-warning)' }} />{movie.rating?.toFixed(1)}/10</span>
+            <span>·</span>
+            <span className="d-flex align-items-center gap-1"><FaClock />{movie.duration}</span>
+            <span>·</span>
+            <span className="d-flex align-items-center gap-1"><FaGlobe />{movie.language}</span>
+            <span>·</span>
+            <span className="d-flex align-items-center gap-1"><FaCalendar />{new Date(movie.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+          </div>
+          <p className="mb-4" style={{ color: 'var(--cs-text-secondary)', lineHeight: '1.6', maxWidth: '800px' }}>{movie.description}</p>
+          
+          {movie.trailerUrl && (
+            <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer"
+              className="cs-button-secondary">
+              <FaPlay /> Watch Trailer
+            </a>
+          )}
         </div>
       </div>
 
       {/* Shows Section */}
-      <div className="container py-4">
-        <h4 className="fw-bold mb-3">Book Tickets</h4>
+      <div>
+        <h4 className="fw-bold mb-4">Select Showtime</h4>
 
         <LocationSelector
           locations={locations}

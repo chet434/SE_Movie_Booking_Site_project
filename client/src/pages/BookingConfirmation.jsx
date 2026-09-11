@@ -133,12 +133,12 @@ const BookingConfirmation = () => {
           </div>
 
           {/* Actions */}
-          <div className="d-flex gap-2 mt-4 no-print">
-            <button className="btn btn-outline-dark flex-fill"
+          <div className="d-flex gap-3 mt-4 no-print justify-content-center">
+            <button className="cs-button-secondary"
               onClick={() => window.print()}>
               <FaPrint className="me-1" /> Print Ticket
             </button>
-            <Link to="/" className="btn btn-warning flex-fill">
+            <Link to="/" className="cs-button-primary">
               <FaHome className="me-1" /> Back to Home
             </Link>
           </div>

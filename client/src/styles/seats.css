@@ -1,116 +1,113 @@
 .seat-layout-container {
-  max-width: 600px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 20px;
+  overflow-x: auto;
+  padding-bottom: 24px;
 }
 
 /* Screen */
 .screen-container {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 .screen {
-  background: linear-gradient(to bottom, #d4d4d4, #a0a0a0);
-  color: #333;
-  padding: 8px 0;
-  border-radius: 4px 4px 50% 50%;
+  background: var(--cs-border);
+  color: var(--cs-text-secondary);
+  padding: 4px 0;
+  border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 3px;
+  font-weight: 800;
+  letter-spacing: 6px;
   text-transform: uppercase;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  margin-top: 24px;
 }
 
 /* Seat Grid */
 .seat-grid {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 24px;
+  gap: 8px;
+  margin-bottom: 32px;
+  min-width: 600px; /* Force horizontal scroll on small screens */
 }
 
 .seat-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .row-label {
-  width: 20px;
+  width: 24px;
   text-align: center;
   font-weight: 700;
   font-size: 0.8rem;
-  color: #666;
+  color: var(--cs-text-secondary);
 }
 
 /* Section Labels */
 .seat-section-label,
 .seat-divider {
   text-align: center;
-  margin: 8px 0;
+  margin: 16px 0;
 }
 
 .divider-label {
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #888;
+  font-weight: 700;
+  color: var(--cs-text-secondary);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 /* Seat Buttons */
 .seat {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px 6px 10px 10px;
-  border: 2px solid transparent;
-  font-size: 0.7rem;
-  font-weight: 600;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background var(--cs-transition-fast), border var(--cs-transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .seat.available.regular {
-  background-color: #e8f5e9;
-  border-color: #4caf50;
-  color: #2e7d32;
+  background-color: var(--cs-success-soft);
+  border-color: var(--cs-success-soft);
+  color: var(--cs-success);
 }
 
 .seat.available.regular:hover {
-  background-color: #4caf50;
-  color: white;
-  transform: scale(1.1);
+  border-color: var(--cs-success);
 }
 
 .seat.available.premium {
-  background-color: #fff3e0;
-  border-color: #ff9800;
-  color: #e65100;
+  background-color: var(--cs-warning-soft);
+  border-color: var(--cs-warning-soft);
+  color: var(--cs-warning);
 }
 
 .seat.available.premium:hover {
-  background-color: #ff9800;
-  color: white;
-  transform: scale(1.1);
+  border-color: var(--cs-warning);
 }
 
 .seat.selected {
-  background-color: #1976d2;
-  border-color: #0d47a1;
-  color: white;
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.4);
+  background-color: var(--cs-accent);
+  border-color: var(--cs-accent-active);
+  color: var(--cs-text-on-accent);
 }
 
 .seat.booked {
-  background-color: #e0e0e0;
-  border-color: #bdbdbd;
-  color: #9e9e9e;
+  background-color: var(--cs-surface-muted);
+  border-color: var(--cs-border);
+  color: var(--cs-text-disabled);
   cursor: not-allowed;
 }
 
@@ -118,58 +115,51 @@
 .seat-legend {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 24px;
   flex-wrap: wrap;
   padding-top: 16px;
-  border-top: 1px solid #eee;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: #666;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--cs-text-primary);
+  font-weight: 600;
 }
 
 .legend-box {
   width: 24px;
   height: 24px;
-  border-radius: 4px 4px 8px 8px;
-  border: 2px solid transparent;
+  border-radius: 6px;
+  border: 1px solid transparent;
 }
 
 .legend-box.available.regular {
-  background-color: #e8f5e9;
-  border-color: #4caf50;
+  background-color: var(--cs-success-soft);
+  border-color: var(--cs-success-soft);
 }
 
 .legend-box.selected {
-  background-color: #1976d2;
-  border-color: #0d47a1;
+  background-color: var(--cs-accent);
+  border-color: var(--cs-accent-active);
 }
 
 .legend-box.booked {
-  background-color: #e0e0e0;
-  border-color: #bdbdbd;
+  background-color: var(--cs-surface-muted);
+  border-color: var(--cs-border);
 }
 
 .legend-box.available.premium {
-  background-color: #fff3e0;
-  border-color: #ff9800;
+  background-color: var(--cs-warning-soft);
+  border-color: var(--cs-warning-soft);
 }
 
 /* Responsive */
-@media (max-width: 576px) {
+@media (min-width: 992px) {
   .seat {
-    width: 30px;
-    height: 30px;
-    font-size: 0.6rem;
-  }
-  .seat-row {
-    gap: 4px;
-  }
-  .seat-layout-container {
-    padding: 10px;
+    width: 36px;
+    height: 36px;
   }
 }

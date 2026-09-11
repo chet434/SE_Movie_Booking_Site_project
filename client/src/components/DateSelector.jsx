@@ -18,18 +18,28 @@ const DateSelector = ({ dates, selectedDate, onSelect }) => {
   };
 
   return (
-    <div className="d-flex gap-2 overflow-auto pb-2 mb-3" style={{ scrollbarWidth: 'thin' }}>
-      {dates.map(date => (
-        <button
-          key={date}
-          className={`btn flex-shrink-0 text-center ${selectedDate === date ? 'btn-warning' : 'btn-outline-secondary'}`}
-          onClick={() => onSelect(date)}
-          style={{ minWidth: '80px', borderRadius: '12px' }}
-        >
-          <div className="small">{getDayName(date)}</div>
-          <div className="fw-bold">{formatDate(date)}</div>
-        </button>
-      ))}
+    <div className="d-flex gap-2 overflow-auto pb-2 mb-4" style={{ scrollbarWidth: 'none' }}>
+      {dates.map(date => {
+        const isSelected = selectedDate === date;
+        return (
+          <button
+            key={date}
+            className="btn flex-shrink-0 text-center"
+            onClick={() => onSelect(date)}
+            style={{ 
+              minWidth: '80px', 
+              borderRadius: '10px',
+              backgroundColor: isSelected ? 'var(--cs-accent)' : 'var(--cs-surface)',
+              color: isSelected ? 'var(--cs-text-on-accent)' : 'var(--cs-text-primary)',
+              border: `1px solid ${isSelected ? 'var(--cs-accent)' : 'var(--cs-border)'}`,
+              transition: 'var(--cs-transition-fast)'
+            }}
+          >
+            <div className="small" style={{ opacity: isSelected ? 1 : 0.7 }}>{getDayName(date)}</div>
+            <div className="fw-bold">{formatDate(date)}</div>
+          </button>
+        );
+      })}
     </div>
   );
 };

@@ -15,13 +15,13 @@ const TheatreShows = ({ theatreShows }) => {
   return (
     <div>
       {theatreShows.map(({ theatre, shows }) => (
-        <div key={theatre._id} className="card border-0 shadow-sm mb-3" style={{ borderRadius: '12px' }}>
-          <div className="card-body p-3">
-            <div className="d-flex justify-content-between align-items-start mb-2">
+        <div key={theatre._id} className="cs-panel mb-4">
+          <div className="p-4">
+            <div className="d-flex justify-content-between align-items-start mb-3">
               <div>
-                <h6 className="fw-bold mb-0">{theatre.name}</h6>
-                <small className="text-muted">
-                  <FaMapMarkerAlt className="me-1" />{theatre.address}, {theatre.location}
+                <h3 className="fw-bold mb-1" style={{ fontSize: '18px' }}>{theatre.name}</h3>
+                <small className="text-muted d-flex align-items-center gap-1">
+                  <FaMapMarkerAlt />{theatre.address}, {theatre.location}
                 </small>
               </div>
             </div>
@@ -29,14 +29,20 @@ const TheatreShows = ({ theatreShows }) => {
               {shows.map(show => (
                 <button
                   key={show._id}
-                  className="btn btn-outline-success btn-sm position-relative"
-                  style={{ borderRadius: '8px', minWidth: '100px' }}
+                  className="btn"
+                  style={{ 
+                    borderRadius: 'var(--cs-radius-control)', 
+                    border: '1px solid var(--cs-border)',
+                    minHeight: '44px',
+                    minWidth: '100px',
+                    color: 'var(--cs-text-primary)'
+                  }}
                   onClick={() => navigate(`/seat-selection/${show._id}`)}
                 >
-                  <div className="fw-bold">{show.startTime}</div>
-                  <div style={{ fontSize: '0.7rem' }}>{show.format} • {show.screenName}</div>
-                  <div style={{ fontSize: '0.65rem' }} className="text-muted">
-                    <FaChair size={10} className="me-1" />{show.availableSeats} seats
+                  <div className="fw-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>{show.startTime}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--cs-text-secondary)' }}>{show.format} • {show.screenName}</div>
+                  <div style={{ fontSize: '0.7rem' }} className="text-muted mt-1">
+                    <FaChair size={10} className="me-1" />{show.availableSeats}
                   </div>
                 </button>
               ))}

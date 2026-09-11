@@ -2,20 +2,21 @@
 
 /* Ticket Card */
 .ticket-card {
-  border: 2px dashed #ddd;
-  border-radius: 16px;
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-panel);
   overflow: hidden;
-  background: white;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: var(--cs-surface);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .ticket-header {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  color: white;
+  background: var(--cs-surface-muted);
+  color: var(--cs-text-primary);
   padding: 16px 24px;
   font-size: 1.1rem;
   display: flex;
   align-items: center;
+  border-bottom: 2px dashed var(--cs-border);
 }
 
 .ticket-body {
@@ -30,8 +31,9 @@
 
 .ticket-divider {
   border-style: dashed;
-  border-color: #ddd;
-  margin: 16px 0;
+  border-color: var(--cs-border);
+  margin: 20px 0;
+  opacity: 0.5;
 }
 
 /* Success Animation */

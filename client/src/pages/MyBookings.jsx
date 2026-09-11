@@ -35,18 +35,30 @@ const MyBookings = () => {
 
   return (
     <div className="container py-4">
-      <h3 className="fw-bold mb-4"><FaTicketAlt className="text-warning me-2" />My Bookings</h3>
+      <h3 className="fw-bold mb-4 d-flex align-items-center gap-2"><FaTicketAlt style={{ color: 'var(--cs-action-primary)' }} />My Bookings</h3>
 
       {/* Tabs */}
-      <ul className="nav nav-pills mb-4">
+      <ul className="nav nav-pills mb-4 gap-2">
         <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'upcoming' ? 'active bg-warning text-dark' : ''}`}
+          <button className={`nav-link fw-bold ${activeTab === 'upcoming' ? 'active' : ''}`}
+            style={{ 
+              backgroundColor: activeTab === 'upcoming' ? 'var(--cs-action-primary)' : 'var(--cs-surface)',
+              color: activeTab === 'upcoming' ? 'var(--cs-text-on-accent)' : 'var(--cs-text-primary)',
+              borderRadius: 'var(--cs-radius-control)',
+              border: activeTab === 'upcoming' ? 'none' : '1px solid var(--cs-border)'
+            }}
             onClick={() => setActiveTab('upcoming')}>
             Upcoming ({bookings.upcoming.length})
           </button>
         </li>
         <li className="nav-item">
-          <button className={`nav-link ${activeTab === 'past' ? 'active bg-warning text-dark' : ''}`}
+          <button className={`nav-link fw-bold ${activeTab === 'past' ? 'active' : ''}`}
+            style={{ 
+              backgroundColor: activeTab === 'past' ? 'var(--cs-action-primary)' : 'var(--cs-surface)',
+              color: activeTab === 'past' ? 'var(--cs-text-on-accent)' : 'var(--cs-text-primary)',
+              borderRadius: 'var(--cs-radius-control)',
+              border: activeTab === 'past' ? 'none' : '1px solid var(--cs-border)'
+            }}
             onClick={() => setActiveTab('past')}>
             Past ({bookings.past.length})
           </button>
@@ -58,15 +70,15 @@ const MyBookings = () => {
           <FaFilm size={48} className="text-muted mb-3" />
           <h5 className="text-muted">No {activeTab} bookings found.</h5>
           {activeTab === 'upcoming' && (
-            <Link to="/" className="btn btn-warning mt-2">Browse Movies</Link>
+            <Link to="/" className="cs-button-primary mt-3 d-inline-block text-decoration-none">Browse Movies</Link>
           )}
         </div>
       ) : (
         <div className="row g-3">
           {currentBookings.map(booking => (
             <div key={booking._id} className="col-md-6">
-              <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '12px' }}>
-                <div className="card-body p-3">
+              <div className="cs-panel h-100">
+                <div className="p-3">
                   <div className="d-flex gap-3">
                     <img src={booking.movie?.poster} alt={booking.movie?.title}
                       className="rounded" style={{ width: '60px', height: '90px', objectFit: 'cover' }}
@@ -92,9 +104,9 @@ const MyBookings = () => {
                         {booking.seatNumbers?.join(', ')}
                       </p>
                       <div className="d-flex justify-content-between align-items-center mt-2">
-                        <span className="fw-bold text-success">₹{booking.totalAmount?.toLocaleString('en-IN')}</span>
+                        <span className="fw-bold" style={{ color: 'var(--cs-action-primary)' }}>₹{booking.totalAmount?.toLocaleString('en-IN')}</span>
                         <Link to={`/booking-confirmation/${booking._id}`}
-                          className="btn btn-sm btn-outline-warning">
+                          className="cs-button-secondary py-1 px-3 text-decoration-none" style={{ fontSize: '0.8rem', minHeight: '32px' }}>
                           View Ticket
                         </Link>
                       </div>

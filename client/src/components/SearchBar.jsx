@@ -11,7 +11,6 @@ const SearchBar = ({ searchQuery, setSearchQuery }) => {
         placeholder="Search movies by name..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ borderRadius: '50px', paddingTop: '10px', paddingBottom: '10px' }}
       />
     </div>
   );

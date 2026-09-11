@@ -12,11 +12,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
-      <div className="container">
-        <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold" to="/">
-          <FaFilm size={24} className="text-warning" />
-          <span>MovieBook</span>
+    <nav className="navbar navbar-expand-lg sticky-top" style={{ backgroundColor: 'var(--cs-canvas)', borderBottom: '1px solid var(--cs-border)', minHeight: '72px' }}>
+      <div className="container-fluid px-md-4">
+        <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold" to="/" style={{ color: 'var(--cs-text-primary)' }}>
+          <FaFilm size={24} style={{ color: 'var(--cs-action-primary)' }} />
+          <span>FilmTIX</span>
         </Link>
 
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -24,40 +24,40 @@ const Navbar = () => {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto">
+          <ul className="navbar-nav me-auto fw-bold">
             <li className="nav-item">
-              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link" to="/" style={{ color: 'var(--cs-text-primary)' }}>Home</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/movies">Movies</Link>
+              <Link className="nav-link" to="/movies" style={{ color: 'var(--cs-text-primary)' }}>Movies</Link>
             </li>
           </ul>
 
-          <ul className="navbar-nav">
+          <ul className="navbar-nav align-items-center fw-bold">
             {user ? (
               <>
                 {user.role === 'admin' && (
                   <li className="nav-item">
-                    <Link className="nav-link text-warning" to="/admin">
+                    <Link className="nav-link" to="/admin" style={{ color: 'var(--cs-warning)' }}>
                       <FaTachometerAlt className="me-1" />Admin
                     </Link>
                   </li>
                 )}
                 <li className="nav-item">
-                  <Link className="nav-link" to="/my-bookings">
+                  <Link className="nav-link" to="/my-bookings" style={{ color: 'var(--cs-text-primary)' }}>
                     <FaTicketAlt className="me-1" />My Bookings
                   </Link>
                 </li>
                 <li className="nav-item dropdown">
-                  <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                  <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" style={{ color: 'var(--cs-text-primary)' }}>
                     <FaUser className="me-1" />{user.name}
                   </a>
-                  <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                  <ul className="dropdown-menu dropdown-menu-end shadow border-0" style={{ backgroundColor: 'var(--cs-surface)', borderRadius: '12px' }}>
                     <li><Link className="dropdown-item" to="/profile">Profile</Link></li>
                     <li><Link className="dropdown-item" to="/change-password">Change Password</Link></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <button className="dropdown-item text-danger" onClick={handleLogout}>
+                      <button className="dropdown-item text-danger fw-bold" onClick={handleLogout}>
                         <FaSignOutAlt className="me-1" />Logout
                       </button>
                     </li>
@@ -67,10 +67,10 @@ const Navbar = () => {
             ) : (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
+                  <Link className="nav-link" to="/login" style={{ color: 'var(--cs-text-primary)' }}>Login</Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="btn btn-warning btn-sm ms-2 mt-1" to="/register">Register</Link>
+                <li className="nav-item ms-lg-3">
+                  <Link className="cs-button-primary" to="/register" style={{ minHeight: '36px', padding: '6px 16px' }}>Register</Link>
                 </li>
               </>
             )}

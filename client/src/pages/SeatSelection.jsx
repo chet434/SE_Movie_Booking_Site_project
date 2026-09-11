@@ -95,57 +95,85 @@ const SeatSelection = () => {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="bg-dark text-white py-3">
-        <div className="container">
-          <Link to={`/movies/${show.movie._id}`} className="text-warning text-decoration-none">
-            <FaArrowLeft className="me-1" /> Back
-          </Link>
-          <div className="d-flex justify-content-between align-items-center mt-2">
-            <div>
-              <h5 className="fw-bold mb-0">{show.movie.title}</h5>
-              <small className="text-muted">
-                {show.theatre.name} • {show.screenName} • {show.format} •{' '}
-                {new Date(show.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} •{' '}
-                {show.startTime}
-              </small>
-            </div>
-          </div>
-        </div>
+    <div className="py-2">
+      <div className="d-flex align-items-center mb-4">
+        <Link to={`/movies/${show.movie._id}`} className="text-decoration-none me-3 fw-bold" style={{ color: 'var(--cs-text-secondary)' }}>
+          <FaArrowLeft className="me-1" /> Back
+        </Link>
+        <h2 className="fw-bold mb-0 flex-grow-1">{show.movie.title}</h2>
       </div>
 
-      <div className="container py-4">
-        {error && <div className="alert alert-danger py-2 text-center">{error}</div>}
-
-        {/* Seat Layout */}
-        <SeatLayout
-          bookedSeats={show.bookedSeats}
-          selectedSeats={selectedSeats}
-          onSeatClick={handleSeatClick}
-          seatPrices={show.seatPrices}
-        />
-
-        {/* Selection Summary */}
-        {selectedSeats.length > 0 && (
-          <div className="fixed-bottom bg-white shadow-lg border-top py-3">
-            <div className="container d-flex justify-content-between align-items-center">
+      <div className="row g-4">
+        <div className="col-12 col-lg-8">
+          <div className="cs-panel p-4 mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
               <div>
-                <div className="d-flex align-items-center gap-2">
-                  <FaChair className="text-primary" />
-                  <span className="fw-semibold">{selectedSeats.sort().join(', ')}</span>
-                </div>
-                <div className="d-flex align-items-center gap-1 text-success fw-bold">
-                  <FaRupeeSign size={14} />
-                  <span>{calculateTotal().toLocaleString('en-IN')} + ₹20 fee</span>
+                <h4 className="fw-bold mb-1">Select Seats</h4>
+                <div className="text-muted small fw-bold">
+                  {show.theatre.name} • {show.screenName} • {show.format} • {new Date(show.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • {show.startTime}
                 </div>
               </div>
-              <button className="btn btn-warning fw-bold px-4 py-2" onClick={handleProceed}>
-                Proceed to Pay ₹{(calculateTotal() + 20).toLocaleString('en-IN')}
-              </button>
             </div>
+            
+            {error && <div className="alert alert-danger py-2">{error}</div>}
+
+            <SeatLayout
+              bookedSeats={show.bookedSeats}
+              selectedSeats={selectedSeats}
+              onSeatClick={handleSeatClick}
+              seatPrices={show.seatPrices}
+            />
           </div>
-        )}
+        </div>
+
+        <div className="col-12 col-lg-4">
+          <div className="cs-panel p-4 position-sticky" style={{ top: '96px' }}>
+            <h5 className="fw-bold mb-4">Booking Summary</h5>
+            
+            <div className="mb-4">
+              <div className="text-muted small fw-bold mb-1">SELECTED SEATS</div>
+              <div className="d-flex align-items-center gap-2">
+                <FaChair style={{ color: 'var(--cs-text-secondary)' }} />
+                <span className="fw-bold" style={{ color: 'var(--cs-text-primary)' }}>
+                  {selectedSeats.length > 0 ? selectedSeats.sort().join(', ') : 'No seats selected'}
+                </span>
+                <span className="ms-auto text-muted small">
+                  ({selectedSeats.length}/6)
+                </span>
+              </div>
+            </div>
+
+            <hr style={{ borderColor: 'var(--cs-border)' }} />
+
+            <div className="mb-4">
+              <div className="d-flex justify-content-between mb-2">
+                <span className="text-muted">Tickets subtotal</span>
+                <span className="fw-bold">₹{calculateTotal().toLocaleString('en-IN')}</span>
+              </div>
+              <div className="d-flex justify-content-between mb-2">
+                <span className="text-muted">Convenience fee</span>
+                <span className="fw-bold">₹20</span>
+              </div>
+            </div>
+
+            <hr style={{ borderColor: 'var(--cs-border)' }} />
+
+            <div className="d-flex justify-content-between mb-4 align-items-center">
+              <span className="fw-bold" style={{ fontSize: '1.1rem' }}>Total Amount</span>
+              <span className="fw-bold" style={{ fontSize: '1.25rem', color: 'var(--cs-action-primary)' }}>
+                ₹{(calculateTotal() + (selectedSeats.length > 0 ? 20 : 0)).toLocaleString('en-IN')}
+              </span>
+            </div>
+
+            <button 
+              className="cs-button-primary w-100 fw-bold" 
+              onClick={handleProceed}
+              disabled={selectedSeats.length === 0}
+            >
+              Proceed to Payment
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

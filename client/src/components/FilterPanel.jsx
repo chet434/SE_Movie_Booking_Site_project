@@ -11,12 +11,12 @@ const FilterPanel = ({ filters, setFilters, locations }) => {
   };
 
   return (
-    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px' }}>
-      <div className="card-body p-3">
+    <div className="cs-panel mb-4">
+      <div className="p-3">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="fw-bold mb-0"><FaFilter className="me-2 text-warning" />Filters</h6>
+          <h6 className="fw-bold mb-0 d-flex align-items-center"><FaFilter className="me-2" style={{ color: 'var(--cs-accent-active)' }} />Filters</h6>
           {hasFilters && (
-            <button className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" onClick={clearFilters}>
+            <button className="btn btn-sm d-flex align-items-center gap-1" onClick={clearFilters} style={{ background: 'transparent', color: 'var(--cs-text-primary)' }}>
               <FaTimes size={12} /> Clear
             </button>
           )}
