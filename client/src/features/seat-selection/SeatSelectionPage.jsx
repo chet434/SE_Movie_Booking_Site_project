@@ -212,6 +212,7 @@ export default function SeatSelectionPage() {
 
     let bookingId = null;
     let bookingNumber = null;
+    let holdData = null;
 
     if (realDbSeatIds.length === selectedSeats.length && realDbSeatIds.length > 0) {
       try {
@@ -219,9 +220,10 @@ export default function SeatSelectionPage() {
           showId: show._id,
           showSeatIds: realDbSeatIds
         });
-        if (res.data?.data) {
-          bookingId = res.data.data.bookingId || res.data.data._id;
-          bookingNumber = res.data.data.bookingNumber || res.data.data.bookingId;
+        holdData = res.data?.data;
+        if (holdData) {
+          bookingId = holdData.bookingId || holdData._id;
+          bookingNumber = holdData.bookingNumber || holdData.bookingId;
         }
       } catch (err) {
         setIsHolding(false);
@@ -240,6 +242,14 @@ export default function SeatSelectionPage() {
       return;
     }
 
+    const isCancellable = Boolean(
+      holdData?.isCancellable ??
+      show?.isCancellable ??
+      show?.theatre?.cancellationAllowed
+    );
+    const cancellationFeePercent = holdData?.cancellationFeePercent ?? show?.cancellationFeePercent ?? 20;
+    const cancellationCutoffMinutes = holdData?.cancellationCutoffMinutes ?? show?.cancellationCutoffMinutes ?? 120;
+
     const bookingData = {
       _id: bookingId,
       bookingId,
@@ -249,6 +259,9 @@ export default function SeatSelectionPage() {
       subtotal,
       convenienceFee,
       totalAmount,
+      isCancellable,
+      cancellationFeePercent,
+      cancellationCutoffMinutes,
       seats: selectedSeats.map((s) => ({
         label: s.label || `${s.row}${s.number}`,
         price: s.price,
@@ -260,7 +273,16 @@ export default function SeatSelectionPage() {
     setIsHolding(false);
 
     // Navigate to payment/booking summary using real backend booking identifier
-    navigate(`/booking-summary/${bookingNumber || bookingId}`);
+    navigate(`/booking-summary/${bookingNumber || bookingId}`, {
+      state: {
+        bookingId,
+        bookingNumber,
+        showId: show._id,
+        isCancellable,
+        cancellationFeePercent,
+        cancellationCutoffMinutes
+      }
+    });
   };
 
   const handleZoomIn = () => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyBookings } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import CancelBookingModal from '../components/CancelBookingModal';
 import {
   IconTicket,
   IconCalendar,
@@ -10,7 +11,8 @@ import {
   IconChevronRight,
   IconQrcode,
   IconX,
-  IconMusic
+  IconMusic,
+  IconCheck
 } from '@tabler/icons-react';
 
 const MyBookings = () => {
@@ -20,6 +22,8 @@ const MyBookings = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [loading, setLoading] = useState(true);
   const [selectedEventPass, setSelectedEventPass] = useState(null);
+  const [cancelModalBooking, setCancelModalBooking] = useState(null);
+  const [cancellationNotice, setCancellationNotice] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -62,6 +66,27 @@ const MyBookings = () => {
     }
   };
 
+  const handleCancellationSuccess = (updatedBooking) => {
+    const bId = updatedBooking.bookingNumber || updatedBooking.bookingId || updatedBooking._id;
+    const refAmt = updatedBooking.refundAmount ?? (updatedBooking.totalAmount ? Number((updatedBooking.totalAmount * 0.8).toFixed(2)) : 0);
+    setCancellationNotice({
+      bookingId: bId,
+      refundAmount: Number(refAmt)
+    });
+    setBookings((prev) => ({
+      upcoming: prev.upcoming.map((b) =>
+        (b._id === updatedBooking._id || b.bookingNumber === updatedBooking.bookingNumber)
+          ? { ...b, ...updatedBooking, status: 'cancelled' }
+          : b
+      ),
+      past: prev.past.map((b) =>
+        (b._id === updatedBooking._id || b.bookingNumber === updatedBooking.bookingNumber)
+          ? { ...b, ...updatedBooking, status: 'cancelled' }
+          : b
+      )
+    }));
+  };
+
   const currentBookings = activeTab === 'upcoming' ? bookings.upcoming : bookings.past;
 
   if (loading) {
@@ -86,6 +111,27 @@ const MyBookings = () => {
             <p className="text-muted small mb-0">View your active and past movie bookings and live event passes</p>
           </div>
         </div>
+
+        {/* Cancellation Success Alert */}
+        {cancellationNotice && (
+          <div
+            className="alert alert-success alert-dismissible fade show d-flex align-items-center justify-content-between mb-4 shadow-sm rounded-2"
+            role="alert"
+          >
+            <div className="d-flex align-items-center gap-2">
+              <IconCheck size={20} className="text-success flex-shrink-0" />
+              <div style={{ fontSize: '13px' }}>
+                <strong>Ticket Cancelled!</strong> Booking <code>{cancellationNotice.bookingId}</code> cancelled successfully. An 80% refund of <strong>₹{cancellationNotice.refundAmount.toFixed(2)}</strong> has been initiated to your original payment method.
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setCancellationNotice(null)}
+              aria-label="Close"
+            />
+          </div>
+        )}
 
         {/* BMS Navigation Tabs */}
         <div className="d-flex gap-2 mb-4 border-bottom pb-2">
@@ -168,11 +214,15 @@ const MyBookings = () => {
                   ? (typeof b.seats[0] === 'string' ? b.seats.join(', ') : b.seats.map(s => s.label).join(', '))
                   : 'Confirmed';
                 const totalPaid = b.totalAmount || b.subtotal || 0;
+                const isCancelled = b.status === 'cancelled' || b.bookingStatus === 'cancelled';
+                const isConfirmed = b.status === 'confirmed';
+                const isCancellable = b.isCancellable !== false;
+                const isEligibleForCancel = isConfirmed && (b.cancellationSummary ? b.cancellationSummary.eligible : false);
 
                 return (
                   <div key={bookingId || b._id} className="col-12 col-md-6">
                     <div className="bg-white rounded-3 p-3 border shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <div className="d-flex gap-3 align-items-center mb-3">
+                      <div className="d-flex gap-3 align-items-start mb-3">
                         {poster && (
                           <img
                             src={poster}
@@ -181,37 +231,96 @@ const MyBookings = () => {
                             style={{ width: '56px', height: '84px', objectFit: 'cover' }}
                           />
                         )}
-                        <div>
-                          <div className="badge bg-success mb-1" style={{ fontSize: '10px' }}>
-                            M-TICKET CONFIRMED
+                        <div className="flex-grow-1">
+                          <div className="d-flex align-items-center gap-1.5 flex-wrap mb-1">
+                            {isCancelled ? (
+                              <span className="badge bg-danger text-white px-2 py-1" style={{ fontSize: '10px' }}>
+                                CANCELLED
+                              </span>
+                            ) : (
+                              <span className="badge bg-success px-2 py-1" style={{ fontSize: '10px' }}>
+                                M-TICKET CONFIRMED
+                              </span>
+                            )}
+
+                            {!isCancelled && (
+                              isEligibleForCancel ? (
+                                <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style={{ fontSize: '10px' }}>
+                                  Cancellable (20% fee)
+                                </span>
+                              ) : !isCancellable ? (
+                                <span className="badge bg-light text-muted border px-2 py-0.5" style={{ fontSize: '10px' }}>
+                                  Non-cancellable
+                                </span>
+                              ) : (
+                                <span className="badge bg-light text-secondary border px-2 py-0.5" style={{ fontSize: '10px' }}>
+                                  Cancellation Window Closed
+                                </span>
+                              )
+                            )}
                           </div>
+
                           <h3 className="fw-bold mb-1 text-dark" style={{ fontSize: '16px' }}>
                             {movieTitle}
                           </h3>
                           <div className="small text-muted mb-1 d-flex align-items-center gap-1">
-                            <IconMapPin size={13} className="text-danger" />
+                            <IconMapPin size={13} className="text-danger flex-shrink-0" />
                             <span>{theatreName}</span>
                           </div>
                           <div className="small text-muted d-flex align-items-center gap-1">
-                            <IconClock size={13} />
+                            <IconClock size={13} className="flex-shrink-0" />
                             <span>{showDateFormatted ? `${showDateFormatted} | ` : ''}{showTime} | Seats: <strong className="text-dark">{seats}</strong></span>
                           </div>
+
+                          {/* Cancellation & Refund Breakdown */}
+                          {isCancelled && (
+                            <div
+                              className="p-2 rounded-2 mt-2"
+                              style={{
+                                backgroundColor: '#FEF3F2',
+                                border: '1px solid #FECDCA',
+                                fontSize: '11px',
+                                color: '#B42318'
+                              }}
+                            >
+                              <div className="fw-semibold">80% Refund Processed</div>
+                              <div>
+                                Paid: ₹{Number(totalPaid).toFixed(2)} &bull; 20% Fee: ₹{Number(b.cancellationFee ?? (totalPaid * 0.2)).toFixed(2)} &bull; Refunded: <strong>₹{Number(b.refundAmount ?? (totalPaid * 0.8)).toFixed(2)}</strong>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       <div className="d-flex align-items-center justify-content-between pt-2 border-top">
                         <div>
-                          <span className="small text-muted d-block" style={{ fontSize: '11px' }}>Total Paid</span>
-                          <span className="fw-bold text-dark">₹{totalPaid}</span>
+                          <span className="small text-muted d-block" style={{ fontSize: '11px' }}>
+                            {isCancelled ? 'Original Paid' : 'Total Paid'}
+                          </span>
+                          <span className={`fw-bold ${isCancelled ? 'text-muted text-decoration-line-through' : 'text-dark'}`}>
+                            ₹{totalPaid}
+                          </span>
                         </div>
-                        <Link
-                          to={`/ticket/${bookingId}`}
-                          className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 fw-semibold rounded-2"
-                          style={{ fontSize: '12px' }}
-                        >
-                          <span>View Ticket</span>
-                          <IconChevronRight size={14} />
-                        </Link>
+                        <div className="d-flex align-items-center gap-2">
+                          {isEligibleForCancel && (
+                            <button
+                              type="button"
+                              onClick={() => setCancelModalBooking(b)}
+                              className="btn btn-sm btn-outline-danger fw-semibold rounded-2"
+                              style={{ fontSize: '12px' }}
+                            >
+                              Cancel Ticket
+                            </button>
+                          )}
+                          <Link
+                            to={`/ticket/${bookingId}`}
+                            className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 fw-semibold rounded-2"
+                            style={{ fontSize: '12px' }}
+                          >
+                            <span>View Ticket</span>
+                            <IconChevronRight size={14} />
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -376,6 +485,14 @@ const MyBookings = () => {
           </div>
         </div>
       )}
+
+      {/* Cancel Booking Modal */}
+      <CancelBookingModal
+        isOpen={Boolean(cancelModalBooking)}
+        onClose={() => setCancelModalBooking(null)}
+        booking={cancelModalBooking}
+        onCancellationSuccess={handleCancellationSuccess}
+      />
     </div>
   );
 };

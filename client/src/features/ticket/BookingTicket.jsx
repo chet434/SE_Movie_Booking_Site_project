@@ -43,10 +43,28 @@ const BookingTicket = ({ booking, printable = false }) => {
             cinebook M-Ticket
           </span>
         </div>
-        <span className="badge bg-white text-danger fw-bold" style={{ fontSize: '11px' }}>
-          CONFIRMED
-        </span>
+        {booking.status === 'cancelled' || booking.bookingStatus === 'cancelled' ? (
+          <span className="badge bg-secondary text-white fw-bold" style={{ fontSize: '11px' }}>
+            CANCELLED
+          </span>
+        ) : (
+          <span className="badge bg-white text-danger fw-bold" style={{ fontSize: '11px' }}>
+            CONFIRMED
+          </span>
+        )}
       </div>
+
+      {/* Cancellation Banner */}
+      {(booking.status === 'cancelled' || booking.bookingStatus === 'cancelled') && (
+        <div className="p-3 bg-danger-subtle border-bottom text-danger">
+          <div className="fw-bold mb-0.5" style={{ fontSize: '13px' }}>
+            Ticket Cancelled &bull; 80% Refund Processed
+          </div>
+          <div className="small" style={{ fontSize: '11px' }}>
+            Paid: ₹{Number(booking.totalAmount || 0).toFixed(2)} &bull; 20% Fee: ₹{Number(booking.cancellationFee ?? (booking.totalAmount ? booking.totalAmount * 0.2 : 0)).toFixed(2)} &bull; Refunded: <strong>₹{Number(booking.refundAmount ?? (booking.totalAmount ? booking.totalAmount * 0.8 : 0)).toFixed(2)}</strong>
+          </div>
+        </div>
+      )}
 
       {/* Movie Details Banner */}
       <div className="p-4 border-bottom d-flex gap-3 align-items-center">

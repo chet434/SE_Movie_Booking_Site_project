@@ -42,6 +42,9 @@ const theatreSchema = new mongoose.Schema({
     coordinates: { type: [Number], default: undefined }
   },
   amenities: [{ type: String }], // New field
+  cancellationAllowed: { type: Boolean, default: true },
+  cancellationFeePercent: { type: Number, default: 20, min: 0, max: 100 },
+  cancellationCutoffMinutes: { type: Number, default: 120 },
   screens: [screenSchema], // Legacy embedded screens
   isActive: { type: Boolean, default: true } // New field
 }, {

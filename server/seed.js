@@ -769,6 +769,9 @@ const seedData = async () => {
         city: cityMap['Mumbai'],
         location: 'Mumbai',
         address: 'Phoenix Mall, Lower Parel',
+        cancellationAllowed: true,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }
@@ -779,6 +782,9 @@ const seedData = async () => {
         city: cityMap['Mumbai'],
         location: 'Mumbai',
         address: 'R-City Mall, Ghatkopar',
+        cancellationAllowed: true,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }
@@ -789,6 +795,9 @@ const seedData = async () => {
         city: cityMap['Delhi-NCR'],
         location: 'Delhi-NCR',
         address: 'DLF Place, Saket',
+        cancellationAllowed: false,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }
@@ -799,6 +808,9 @@ const seedData = async () => {
         city: cityMap['Pune'],
         location: 'Pune',
         address: 'Phoenix Market City, Viman Nagar',
+        cancellationAllowed: true,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'IMAX', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }
@@ -809,6 +821,9 @@ const seedData = async () => {
         city: cityMap['Hyderabad'],
         location: 'Hyderabad',
         address: 'Sarath City Capital Mall, Gachibowli',
+        cancellationAllowed: false,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }
@@ -819,6 +834,9 @@ const seedData = async () => {
         city: cityMap['Bhubaneswar'],
         location: 'Bhubaneswar',
         address: 'Nexus Esplanade, Rasulgarh',
+        cancellationAllowed: true,
+        cancellationFeePercent: 20,
+        cancellationCutoffMinutes: 120,
         screens: [
           { screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 },
           { screenName: 'Screen 2', totalSeats: 48, rows: 6, seatsPerRow: 8 }

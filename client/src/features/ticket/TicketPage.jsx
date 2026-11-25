@@ -4,12 +4,14 @@ import { getBookingById } from '../../services/api';
 import BookingTicket from './BookingTicket';
 import TicketActions from './TicketActions';
 import BookingStepper from '../seat-selection/BookingStepper';
+import CancelBookingModal from '../../components/CancelBookingModal';
 import { IconAlertTriangle, IconFileSearch, IconLock, IconCheck, IconConfetti } from '@tabler/icons-react';
 
 const TicketPage = () => {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
-  const [status, setStatus] = useState('loading'); // loading, confirmed, past, failed, unauthorized, missing
+  const [status, setStatus] = useState('loading'); // loading, confirmed, past, cancelled, failed, unauthorized, missing
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   useEffect(() => {
     fetchBooking();
@@ -26,6 +28,8 @@ const TicketPage = () => {
 
       if (bookingData.bookingStatus === 'failed' || bookingData.status === 'failed') {
         setStatus('failed');
+      } else if (bookingData.bookingStatus === 'cancelled' || bookingData.status === 'cancelled') {
+        setStatus('cancelled');
       } else if (new Date(bookingData.show?.date || bookingData.snapshot?.startsAt) < new Date() && bookingData.status !== 'confirmed') {
         setStatus('past');
       } else {
@@ -38,6 +42,16 @@ const TicketPage = () => {
         setStatus('missing');
       }
     }
+  };
+
+  const handleCancellationSuccess = (updatedData) => {
+    setBooking((prev) => ({
+      ...prev,
+      ...updatedData,
+      status: 'cancelled',
+      bookingStatus: 'cancelled'
+    }));
+    setStatus('cancelled');
   };
 
   const renderContent = () => {
@@ -143,6 +157,7 @@ const TicketPage = () => {
         );
 
       case 'confirmed':
+      case 'cancelled':
       case 'past':
       default:
         return (
@@ -180,6 +195,32 @@ const TicketPage = () => {
                 </div>
               )}
 
+              {status === 'cancelled' && (
+                <div className="text-center mb-4 no-print">
+                  <div
+                    className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow"
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      backgroundColor: '#FEE2E2',
+                      color: '#DC2626',
+                      border: '1px solid #FCA5A5'
+                    }}
+                  >
+                    <IconAlertTriangle size={32} />
+                  </div>
+                  <h3
+                    className="fw-bold mb-1"
+                    style={{ color: '#222222', fontFamily: 'var(--cb-font-display)', fontSize: '24px' }}
+                  >
+                    Booking Cancelled
+                  </h3>
+                  <p className="small mb-0 text-muted" style={{ maxWidth: '420px' }}>
+                    This booking has been cancelled and seats released. An 80% refund of <strong>₹{booking?.refundAmount ?? (booking?.totalAmount ? (booking.totalAmount * 0.8).toFixed(2) : 0)}</strong> has been processed to your payment method.
+                  </p>
+                </div>
+              )}
+
               {status === 'past' && (
                 <div className="text-center mb-4 no-print">
                   <span className="badge bg-secondary mb-2">Past Show</span>
@@ -192,6 +233,31 @@ const TicketPage = () => {
 
               {/* Action Buttons: Print, Copy Code, Share */}
               <TicketActions bookingCode={booking.bookingId || booking.bookingNumber || booking._id} />
+
+              {/* Cancel Ticket Action (when eligible) */}
+              {status === 'confirmed' && booking.cancellationSummary?.eligible && (
+                <div className="mt-3 text-center no-print" style={{ maxWidth: '460px', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelModal(true)}
+                    className="btn btn-outline-danger btn-sm w-100 py-2 rounded-2 fw-semibold"
+                    style={{ fontSize: '13px' }}
+                  >
+                    Cancel Ticket (80% Refund)
+                  </button>
+                  <small className="text-muted d-block mt-1" style={{ fontSize: '11px' }}>
+                    Cancellation available up to 2 hours before showtime (20% fee applies)
+                  </small>
+                </div>
+              )}
+
+              {/* Cancel Modal */}
+              <CancelBookingModal
+                isOpen={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                booking={booking}
+                onCancellationSuccess={handleCancellationSuccess}
+              />
             </div>
           </div>
         );

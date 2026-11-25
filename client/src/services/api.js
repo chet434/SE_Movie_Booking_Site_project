@@ -157,7 +157,7 @@ export const deleteShow = (id) => API.delete(`/shows/${id}`);
 export const createBooking = (data) => API.post('/bookings', data);           // V1 legacy
 export const holdSeats = (data) => API.post('/bookings/hold', data);          // V2
 export const confirmBooking = (data) => API.post('/bookings/confirm', data);  // V2
-export const cancelBooking = (id) => API.post(`/bookings/${id}/cancel`);      // V2
+export const cancelBooking = (id, data) => API.post(`/bookings/${id}/cancel`, data);      // V2
 export const getMyBookings = () => API.get('/bookings/my-bookings');
 export const getBookingById = (id) => API.get(`/bookings/${id}`);
 export const getAllBookings = (params) => API.get('/bookings/all', { params });

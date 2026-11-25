@@ -57,6 +57,10 @@ const showSchema = new mongoose.Schema({
     enum: ['scheduled', 'now_showing', 'completed', 'cancelled'],
     default: 'scheduled'
   },
+  isCancellable: {
+    type: Boolean,
+    default: null // null inherits theatre.cancellationAllowed; boolean overrides
+  },
   isActive: {
     type: Boolean,
     default: true

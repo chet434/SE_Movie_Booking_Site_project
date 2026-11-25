@@ -7,6 +7,7 @@ const City = require('../models/City');
 const ShowSeat = require('../models/ShowSeat');
 const { escapeRegex } = require('../utils/escapeRegex');
 const { deepTrust } = require('../utils/deepTrust');
+const { resolveShowCancellability } = require('../utils/cancellationPolicy');
 
 class ShowRepository {
   async findByMovie({ movieId, cityId, location, date, isActive = true } = {}) {
@@ -53,7 +54,7 @@ class ShowRepository {
 
     const shows = await Show.find(deepTrust(showFilter))
       .populate('movie', 'title poster duration durationMinutes')
-      .populate('theatre', 'name location address city')
+      .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
       .populate('screen', 'name screenNumber formatCapabilities capacity')
       .sort({ startsAt: 1, startTime: 1 });
 
@@ -62,7 +63,16 @@ class ShowRepository {
       const theatreId = show.theatre._id.toString();
 
       if (!grouped[theatreId]) {
-        grouped[theatreId] = { theatre: show.theatre, shows: [] };
+        const tObj = show.theatre.toObject ? show.theatre.toObject() : show.theatre;
+        grouped[theatreId] = {
+          theatre: {
+            ...tObj,
+            cancellationAllowed: show.theatre.cancellationAllowed,
+            cancellationFeePercent: show.theatre.cancellationFeePercent ?? 20,
+            cancellationCutoffMinutes: show.theatre.cancellationCutoffMinutes ?? 120
+          },
+          shows: []
+        };
       }
 
       const showSeatCount = await ShowSeat.countDocuments({ show: show._id, status: 'available' });
@@ -73,6 +83,11 @@ class ShowRepository {
         const screenCapacity = show.screen?.capacity || 48;
         availableSeats = screenCapacity - (show.bookedSeats?.length || 0);
       }
+
+      const cancellability = resolveShowCancellability({
+        isCancellable: show.isCancellable,
+        theatre: show.theatre
+      });
 
       grouped[theatreId].shows.push({
         _id: show._id,
@@ -86,7 +101,10 @@ class ShowRepository {
         screen: show.screen,
         pricing: show.pricing || show.seatPrices,
         seatPrices: show.seatPrices,
-        availableSeats
+        availableSeats,
+        isCancellable: cancellability.isCancellable,
+        cancellationFeePercent: cancellability.feePercent,
+        cancellationCutoffMinutes: cancellability.cutoffMinutes
       });
     }
 
@@ -98,13 +116,22 @@ class ShowRepository {
 
     const populateOptions = [
       'movie',
-      'theatre',
+      {
+        path: 'theatre',
+        select: 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes'
+      },
       'screen'
     ];
 
     const show = await Show.findById(id).populate(populateOptions);
 
     if (!show) return null;
+
+    const cancellability = resolveShowCancellability(show);
+    const showObj = show.toObject ? show.toObject() : { ...show };
+    showObj.isCancellable = cancellability.isCancellable;
+    showObj.cancellationFeePercent = cancellability.feePercent;
+    showObj.cancellationCutoffMinutes = cancellability.cutoffMinutes;
 
     if (includeSeats) {
       const showSeats = await ShowSeat.find({ show: show._id })
@@ -113,13 +140,13 @@ class ShowRepository {
         .lean();
 
       if (showSeats.length === 0) {
-        return { ...show.toObject(), source: 'legacy', data: null };
+        return { ...showObj, source: 'legacy', data: null };
       }
 
-      return { ...show.toObject(), source: 'v2', data: showSeats };
+      return { ...showObj, source: 'v2', data: showSeats };
     }
 
-    return show;
+    return showObj;
   }
 
   async create(data) {

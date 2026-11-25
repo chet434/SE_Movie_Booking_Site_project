@@ -86,8 +86,18 @@ const bookingSchema = new mongoose.Schema({
     startTime:      String,
     format:         String,
     language:       String,
-    posterUrl:      String
+    posterUrl:      String,
+    isCancellable:  Boolean
   },
+
+  // Cancellation & Refund configuration locked at purchase
+  isCancellable:             { type: Boolean, default: null },
+  cancellationFeePercent:    { type: Number, default: 20 },
+  cancellationCutoffMinutes: { type: Number, default: 120 },
+  cancellationFee:           { type: Number, default: 0 },
+  refundAmount:              { type: Number, default: 0 },
+  refundStatus:              { type: String, enum: ['none', 'pending', 'processed'], default: 'none' },
+  cancellationReason:        { type: String, default: '' },
 
   bookingSource: { type: String, enum: ['web', 'app', 'admin'], default: 'web' }, // New field
 

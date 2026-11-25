@@ -13,9 +13,12 @@ const paymentSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ['created', 'pending', 'paid', 'failed', 'refunded'],
+    enum: ['created', 'pending', 'paid', 'failed', 'refunded', 'partially_refunded'],
     default: 'created'
   },
+  cancellationFee: { type: Number, default: 0 },
+  refundAmount:    { type: Number, default: 0 },
+  refundedAt:      { type: Date },
   method: { type: String },  // 'upi', 'card', 'netbanking', 'wallet'
   failureReason: String,
   paidAt: Date

@@ -9,6 +9,7 @@ const Theatre = require('../models/Theatre');
 const User = require('../models/User');
 const Screen = require('../models/Screen');
 const { deepTrust } = require('../utils/deepTrust');
+const { resolveShowCancellability, evaluateCancellation } = require('../utils/cancellationPolicy');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -119,12 +120,14 @@ const holdSeats = async (req, res) => {
 
     const show = await Show.findById(showId)
       .populate('movie', 'title poster language')
-      .populate('theatre', 'name location city address')
+      .populate('theatre', 'name location city address cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
       .populate('screen', 'name');
 
     if (!show || !show.isActive) {
       return res.status(404).json({ success: false, message: 'Show not found or no longer active.' });
     }
+
+    const cancellability = resolveShowCancellability(show);
 
     // Only reject past shows in strict production mode
     const showTime = show.startsAt || show.date;
@@ -197,7 +200,8 @@ const holdSeats = async (req, res) => {
         startsAt: show.startsAt || show.date || new Date(),
         startTime: show.startTime || '07:30 PM',
         format: show.format || '3D',
-        language: show.language || show.movie?.language || 'English'
+        language: show.language || show.movie?.language || 'English',
+        isCancellable: cancellability.isCancellable
       };
 
       // Create pending booking
@@ -219,6 +223,9 @@ const holdSeats = async (req, res) => {
         status: 'pending',
         bookingStatus: 'pending',
         paymentStatus: 'pending',
+        isCancellable: cancellability.isCancellable,
+        cancellationFeePercent: cancellability.feePercent,
+        cancellationCutoffMinutes: cancellability.cutoffMinutes,
         snapshot
       }], txOpts);
 
@@ -249,6 +256,9 @@ const holdSeats = async (req, res) => {
         totalAmount: populated?.totalAmount || 0,
         subtotal: populated?.subtotal || 0,
         convenienceFee: 20,
+        isCancellable: cancellability.isCancellable,
+        cancellationFeePercent: cancellability.feePercent,
+        cancellationCutoffMinutes: cancellability.cutoffMinutes,
         seats: populated?.seatNumbers?.map(label => ({ label })) || []
       }
     });
@@ -292,18 +302,27 @@ const confirmBooking = async (req, res) => {
       if (booking.status === 'confirmed') {
         const alreadyConfirmed = await Booking.findById(booking._id)
           .populate('movie', 'title poster genre language duration')
-          .populate('theatre', 'name location address')
-          .populate('show', 'date startTime startsAt format screenName');
+          .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+          .populate('show', 'date startTime startsAt format screenName isCancellable');
+
+        const alreadyObj = alreadyConfirmed.toObject();
+        const cancellability = resolveShowCancellability(alreadyConfirmed.show || { theatre: alreadyConfirmed.theatre });
+        alreadyObj.isCancellable = alreadyConfirmed.isCancellable ?? cancellability.isCancellable;
+        alreadyObj.cancellationFeePercent = alreadyConfirmed.cancellationFeePercent ?? cancellability.feePercent;
+        alreadyObj.cancellationCutoffMinutes = alreadyConfirmed.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
+
         return res.json({
           success: true,
           message: 'Booking already confirmed.',
-          data: alreadyConfirmed
+          data: alreadyObj
         });
       }
 
       const show = await Show.findById(booking.show)
         .populate('movie', 'title poster language')
-        .populate('theatre', 'name location address city');
+        .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes');
+
+      const cancellability = resolveShowCancellability(show);
 
       // Resolve seat labels
       let resolvedSeatLabels = (booking.seatNumbers && booking.seatNumbers.length > 0)
@@ -338,7 +357,10 @@ const confirmBooking = async (req, res) => {
         startsAt: show?.startsAt || show?.date || booking.snapshot?.startsAt || new Date(),
         startTime: show?.startTime || booking.snapshot?.startTime || '07:30 PM',
         format: show?.format || booking.snapshot?.format || '3D',
-        language: show?.language || show?.movie?.language || booking.snapshot?.language || 'English'
+        language: show?.language || show?.movie?.language || booking.snapshot?.language || 'English',
+        isCancellable: booking.isCancellable !== undefined && booking.isCancellable !== null
+          ? booking.isCancellable
+          : cancellability.isCancellable
       };
 
       await runInTransaction(async (session) => {
@@ -376,6 +398,11 @@ const confirmBooking = async (req, res) => {
             seatsCount: resolvedSeatLabels.length,
             totalAmount: totalAmount || booking.totalAmount,
             subtotal: totalAmount ? totalAmount - (booking.convenienceFee || 20) : booking.subtotal,
+            isCancellable: booking.isCancellable !== undefined && booking.isCancellable !== null
+              ? booking.isCancellable
+              : cancellability.isCancellable,
+            cancellationFeePercent: booking.cancellationFeePercent ?? cancellability.feePercent,
+            cancellationCutoffMinutes: booking.cancellationCutoffMinutes ?? cancellability.cutoffMinutes,
             snapshot
           },
           txOpts
@@ -397,13 +424,18 @@ const confirmBooking = async (req, res) => {
 
       const confirmedBooking = await Booking.findById(booking._id)
         .populate('movie', 'title poster genre language duration')
-        .populate('theatre', 'name location address')
-        .populate('show', 'date startTime startsAt format screenName');
+        .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+        .populate('show', 'date startTime startsAt format screenName isCancellable');
+
+      const confObj = confirmedBooking.toObject();
+      confObj.isCancellable = confirmedBooking.isCancellable ?? cancellability.isCancellable;
+      confObj.cancellationFeePercent = confirmedBooking.cancellationFeePercent ?? cancellability.feePercent;
+      confObj.cancellationCutoffMinutes = confirmedBooking.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
 
       return res.json({
         success: true,
         message: 'Booking confirmed!',
-        data: confirmedBooking
+        data: confObj
       });
     }
 
@@ -415,11 +447,14 @@ const confirmBooking = async (req, res) => {
 
     let show = null;
     if (targetShowId && mongoose.Types.ObjectId.isValid(targetShowId)) {
-      show = await Show.findById(targetShowId).populate('movie theatre');
+      show = await Show.findById(targetShowId)
+        .populate('movie')
+        .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes');
     }
     if (!show) {
       return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
     }
+    const cancellability = resolveShowCancellability(show);
     const finalAmount = totalAmount || (resolvedSeats.length * 299 + 20);
     const bNum = (bookingId && bookingId.startsWith('BMS')) ? bookingId : generateBookingNumber();
 
@@ -434,7 +469,8 @@ const confirmBooking = async (req, res) => {
       startsAt: show?.startsAt || show?.date || new Date(),
       startTime: show?.startTime || '07:30 PM',
       format: show?.format || '3D',
-      language: show?.language || show?.movie?.language || 'English'
+      language: show?.language || show?.movie?.language || 'English',
+      isCancellable: cancellability.isCancellable
     };
 
     let newBooking;
@@ -460,6 +496,9 @@ const confirmBooking = async (req, res) => {
         paymentMethod: paymentMethod || 'UPI',
         transactionId: orderId,
         confirmedAt: new Date(),
+        isCancellable: cancellability.isCancellable,
+        cancellationFeePercent: cancellability.feePercent,
+        cancellationCutoffMinutes: cancellability.cutoffMinutes,
         snapshot
       }], txOpts);
 
@@ -488,13 +527,18 @@ const confirmBooking = async (req, res) => {
 
     const populatedNew = await Booking.findById(newBooking._id)
       .populate('movie', 'title poster genre language duration')
-      .populate('theatre', 'name location address')
-      .populate('show', 'date startTime startsAt format screenName');
+      .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+      .populate('show', 'date startTime startsAt format screenName isCancellable');
+
+    const newObj = populatedNew.toObject();
+    newObj.isCancellable = populatedNew.isCancellable ?? cancellability.isCancellable;
+    newObj.cancellationFeePercent = populatedNew.cancellationFeePercent ?? cancellability.feePercent;
+    newObj.cancellationCutoffMinutes = populatedNew.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
 
     return res.status(201).json({
       success: true,
       message: 'Booking confirmed!',
-      data: populatedNew
+      data: newObj
     });
   } catch (error) {
     console.error('[BookingController] confirmBooking error:', error);
@@ -523,7 +567,7 @@ const createBooking = async (req, res) => {
     if (showId && mongoose.Types.ObjectId.isValid(showId)) {
       show = await Show.findById(showId)
         .populate('movie', 'title poster language')
-        .populate('theatre', 'name location address');
+        .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes');
     }
     if (!show) {
       return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
@@ -532,6 +576,8 @@ const createBooking = async (req, res) => {
     if (!show || !show.isActive) {
       return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
     }
+
+    const cancellability = resolveShowCancellability(show);
 
     // Release expired holds
     if (show._id) {
@@ -555,7 +601,8 @@ const createBooking = async (req, res) => {
       startsAt: show.startsAt || show.date || new Date(),
       startTime: show.startTime || '07:30 PM',
       format: show.format || '3D',
-      language: show.language || show.movie?.language || 'English'
+      language: show.language || show.movie?.language || 'English',
+      isCancellable: cancellability.isCancellable
     };
 
     let newBooking;
@@ -581,6 +628,9 @@ const createBooking = async (req, res) => {
         paymentMethod: paymentMethod || 'UPI',
         transactionId: orderId,
         confirmedAt: new Date(),
+        isCancellable: cancellability.isCancellable,
+        cancellationFeePercent: cancellability.feePercent,
+        cancellationCutoffMinutes: cancellability.cutoffMinutes,
         snapshot
       }], txOpts);
 
@@ -616,13 +666,18 @@ const createBooking = async (req, res) => {
 
     const populatedBooking = await Booking.findById(newBooking._id)
       .populate('movie', 'title poster genre language duration')
-      .populate('theatre', 'name location address')
-      .populate('show', 'date startTime startsAt format screenName');
+      .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+      .populate('show', 'date startTime startsAt format screenName isCancellable');
+
+    const popObj = populatedBooking.toObject();
+    popObj.isCancellable = populatedBooking.isCancellable ?? cancellability.isCancellable;
+    popObj.cancellationFeePercent = populatedBooking.cancellationFeePercent ?? cancellability.feePercent;
+    popObj.cancellationCutoffMinutes = populatedBooking.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
 
     res.status(201).json({
       success: true,
       message: 'Booking confirmed!',
-      data: populatedBooking
+      data: popObj
     });
   } catch (error) {
     console.error('[BookingController] createBooking error:', error);
@@ -641,12 +696,12 @@ const cancelBooking = async (req, res) => {
     let booking = null;
 
     if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
-      booking = await Booking.findById(id);
+      booking = await Booking.findById(id).populate('show theatre');
     }
     if (!booking) {
       booking = await Booking.findOne(deepTrust({
         $or: [{ bookingNumber: id }, { bookingId: id }]
-      }));
+      })).populate('show theatre');
     }
 
     if (!booking) {
@@ -659,12 +714,33 @@ const cancelBooking = async (req, res) => {
       return res.status(400).json({ success: false, message: `Cannot cancel a booking that is ${booking.status}.` });
     }
 
+    // For confirmed bookings, enforce cancellation policy rules
+    let refundSummary = null;
+    if (booking.status === 'confirmed') {
+      const evaluation = evaluateCancellation(booking);
+      if (!evaluation.eligible) {
+        return res.status(400).json({
+          success: false,
+          error: evaluation.reason,
+          message: evaluation.reason
+        });
+      }
+      refundSummary = {
+        totalAmount: evaluation.totalAmount,
+        feePercent: evaluation.feePercent,
+        cancellationFee: evaluation.cancellationFee,
+        refundAmount: evaluation.refundAmount,
+        refundStatus: 'processed'
+      };
+    }
+
+    let updatedBooking = null;
     await runInTransaction(async (session) => {
       const txOpts = session ? { session } : {};
 
-      // Release ShowSeats
+      // Release ShowSeats held by this booking
       await ShowSeat.updateMany(
-        { show: booking.show, 'hold.bookingId': booking._id },
+        { show: booking.show?._id || booking.show, 'hold.bookingId': booking._id },
         { $set: { status: 'available' }, $unset: { hold: '' } },
         txOpts
       );
@@ -672,32 +748,77 @@ const cancelBooking = async (req, res) => {
       const seatLabels = booking.seatNumbers || [];
       if (seatLabels.length > 0) {
         await ShowSeat.updateMany(
-          deepTrust({ show: booking.show, label: { $in: seatLabels } }),
+          deepTrust({ show: booking.show?._id || booking.show, label: { $in: seatLabels } }),
           { $set: { status: 'available' }, $unset: { hold: '' } },
           txOpts
         );
 
         await Show.findByIdAndUpdate(
-          booking.show,
+          booking.show?._id || booking.show,
           { $pull: { bookedSeats: { $in: seatLabels } } },
           txOpts
         );
       }
 
-      await Booking.findByIdAndUpdate(
-        booking._id,
-        { status: 'cancelled', bookingStatus: 'cancelled', cancelledAt: new Date() },
-        txOpts
+      // Clean up BookingSeat claims so seats can be re-held/re-booked
+      await BookingSeat.deleteMany({ booking: booking._id }, txOpts);
+
+      const bookingUpdates = {
+        status: 'cancelled',
+        bookingStatus: 'cancelled',
+        cancelledAt: new Date(),
+        cancellationReason: req.body?.reason || 'Cancelled by user'
+      };
+
+      if (refundSummary) {
+        bookingUpdates.paymentStatus = 'partially_refunded';
+        bookingUpdates.cancellationFee = refundSummary.cancellationFee;
+        bookingUpdates.refundAmount = refundSummary.refundAmount;
+        bookingUpdates.refundStatus = 'processed';
+      }
+
+      updatedBooking = await Booking.findOneAndUpdate(
+        { _id: booking._id, status: { $in: ['confirmed', 'pending'] } },
+        bookingUpdates,
+        { new: true, ...txOpts }
       );
 
-      await Payment.updateMany(
-        { booking: booking._id, status: 'paid' },
-        { $set: { status: 'refunded' } },
-        txOpts
-      );
+      if (!updatedBooking) {
+        throw new Error('Booking has already been cancelled or updated.');
+      }
+
+      if (refundSummary) {
+        await Payment.updateMany(
+          { booking: booking._id, status: 'paid' },
+          {
+            $set: {
+              status: 'partially_refunded',
+              cancellationFee: refundSummary.cancellationFee,
+              refundAmount: refundSummary.refundAmount,
+              refundedAt: new Date()
+            }
+          },
+          txOpts
+        );
+      } else {
+        await Payment.updateMany(
+          { booking: booking._id, status: 'paid' },
+          { $set: { status: 'refunded' } },
+          txOpts
+        );
+      }
     });
 
-    res.json({ success: true, message: 'Booking cancelled and seats released.' });
+    return res.json({
+      success: true,
+      message: refundSummary
+        ? 'Booking cancelled. 80% refund processed after 20% cancellation fee.'
+        : 'Booking cancelled and seats released.',
+      data: {
+        booking: updatedBooking,
+        ...(refundSummary ? { refundSummary } : {})
+      }
+    });
   } catch (error) {
     console.error('[BookingController] cancelBooking error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -716,8 +837,15 @@ const getUserBookings = async (req, res) => {
       status: { $ne: 'pending' }
     }))
       .populate('movie', 'title poster genre language duration')
-      .populate('theatre', 'name location address city')
-      .populate('show', 'date startTime startsAt format screenName')
+      .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+      .populate({
+        path: 'show',
+        select: 'date startTime startsAt format screenName isCancellable theatre',
+        populate: {
+          path: 'theatre',
+          select: 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes'
+        }
+      })
       .sort({ createdAt: -1 });
 
     const now = new Date();
@@ -760,6 +888,16 @@ const getUserBookings = async (req, res) => {
         }
         isFuture = dt >= now;
       }
+      const cancellability = resolveShowCancellability(booking.show || { theatre: booking.theatre });
+      if (typeof bObj.isCancellable !== 'boolean') {
+        bObj.isCancellable = typeof bObj.snapshot?.isCancellable === 'boolean'
+          ? bObj.snapshot.isCancellable
+          : cancellability.isCancellable;
+      }
+      bObj.cancellationFeePercent = bObj.cancellationFeePercent ?? cancellability.feePercent;
+      bObj.cancellationCutoffMinutes = bObj.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
+      bObj.cancellationSummary = evaluateCancellation(booking);
+
       if (isFuture) {
         upcoming.push(bObj);
       } else {
@@ -793,8 +931,15 @@ const getBookingById = async (req, res) => {
 
     const booking = await Booking.findOne(deepTrust(query))
       .populate('movie', 'title poster genre language duration')
-      .populate('theatre', 'name location address city')
-      .populate('show', 'date startTime startsAt endsAt format screenName seatPrices language')
+      .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes')
+      .populate({
+        path: 'show',
+        select: 'date startTime startsAt endsAt format screenName seatPrices language isCancellable theatre',
+        populate: {
+          path: 'theatre',
+          select: 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes'
+        }
+      })
       .populate('user', 'name email phone');
 
     if (!booking) {
@@ -812,12 +957,32 @@ const getBookingById = async (req, res) => {
       ? booking.seatNumbers
       : bookingSeats.map(bs => bs.seatLabel);
 
+    const cancellability = resolveShowCancellability(booking.show || { theatre: booking.theatre });
+    const isCancellable = typeof booking.isCancellable === 'boolean'
+      ? booking.isCancellable
+      : (typeof booking.snapshot?.isCancellable === 'boolean'
+        ? booking.snapshot.isCancellable
+        : cancellability.isCancellable);
+    const cancellationFeePercent = booking.cancellationFeePercent ?? cancellability.feePercent;
+    const cancellationCutoffMinutes = booking.cancellationCutoffMinutes ?? cancellability.cutoffMinutes;
+
+    const cancellationSummary = evaluateCancellation(booking);
+
+    const bObj = booking.toObject();
+    bObj.isCancellable = isCancellable;
+    bObj.cancellationFeePercent = cancellationFeePercent;
+    bObj.cancellationCutoffMinutes = cancellationCutoffMinutes;
+
     res.json({
       success: true,
       data: {
-        ...booking.toObject(),
+        ...bObj,
         seatNumbers,
-        bookingSeats
+        bookingSeats,
+        isCancellable,
+        cancellationFeePercent,
+        cancellationCutoffMinutes,
+        cancellationSummary
       }
     });
   } catch (error) {

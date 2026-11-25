@@ -71,30 +71,46 @@ const TheatreShows = ({ theatreShows, movieId }) => {
 
       {/* 2. Theatre Listings (Screenshot 21) */}
       <div className="d-flex flex-column gap-3">
-        {theatreShows.map(({ theatre, shows }) => (
-          <div
-            key={theatre?._id || theatre?.id || Math.random()}
-            className="bg-white rounded-2 p-3 p-md-4 border shadow-sm"
-          >
-            {/* Theatre Info Row */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3 pb-2 border-bottom">
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-1">
-                  <span className="text-danger">🏢</span>
-                  <h5 className="fw-bold text-dark mb-0" style={{ fontSize: '15px' }}>
-                    {theatre?.name || 'Cinema Theatre'}
-                  </h5>
-                  <IconInfoCircle size={15} className="text-muted cursor-pointer" />
+        {theatreShows.map(({ theatre, shows }) => {
+          const sampleShow = shows?.[0];
+          const isCancellable = shows?.some(s => s.isCancellable === true)
+            ? true
+            : Boolean(
+                sampleShow?.isCancellable ?? sampleShow?.theatre?.cancellationAllowed ?? theatre?.cancellationAllowed
+              );
+
+          return (
+            <div
+              key={theatre?._id || theatre?.id || Math.random()}
+              className="bg-white rounded-2 p-3 p-md-4 border shadow-sm"
+            >
+              {/* Theatre Info Row */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3 pb-2 border-bottom">
+                <div>
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <span className="text-danger">🏢</span>
+                    <h5 className="fw-bold text-dark mb-0" style={{ fontSize: '15px' }}>
+                      {theatre?.name || 'Cinema Theatre'}
+                    </h5>
+                    <IconInfoCircle size={15} className="text-muted cursor-pointer" />
+                  </div>
+                  <div className="d-flex align-items-center gap-3 small text-muted">
+                    <span style={{ fontSize: '12px', color: '#777777' }}>
+                      {formatAddress(theatre?.address, theatre?.location) || theatre?.location || 'Cinema Venue'}
+                    </span>
+                    {isCancellable ? (
+                      <div className="d-flex align-items-center gap-1" title="Cancellation allowed up to 2 hours before showtime (20% fee applies)">
+                        <span className="rounded-circle d-inline-block bg-success" style={{ width: '6px', height: '6px' }} />
+                        <span className="text-success fw-medium" style={{ fontSize: '11px' }}>Cancellation Available</span>
+                        <span className="text-muted" style={{ fontSize: '10px' }}> (20% fee applies)</span>
+                      </div>
+                    ) : (
+                      <span className="badge bg-light text-muted border px-2 py-0" style={{ fontSize: '10px' }}>
+                        Non-cancellable
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="d-flex align-items-center gap-3 small text-muted">
-                  <span style={{ fontSize: '12px', color: '#777777' }}>
-                    {formatAddress(theatre?.address, theatre?.location) || theatre?.location || 'Cinema Venue'}
-                  </span>
-                  <span className="badge bg-light text-muted border px-2 py-0" style={{ fontSize: '10px' }}>
-                    Non-cancellable
-                  </span>
-                </div>
-              </div>
 
               {/* Favourite Heart */}
               <button
@@ -171,7 +187,8 @@ const TheatreShows = ({ theatreShows, movieId }) => {
               })}
             </div>
           </div>
-        ))}
+        );
+      })}
       </div>
     </div>
   );

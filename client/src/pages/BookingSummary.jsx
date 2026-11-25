@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { getShowById, createBooking, holdSeats, confirmBooking, getShowSeats, getBookingById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -14,7 +14,8 @@ import {
   IconCheck,
   IconQrcode,
   IconEdit,
-  IconChevronRight
+  IconChevronRight,
+  IconAlertTriangle
 } from '@tabler/icons-react';
 import '../styles/booking.css';
 
@@ -51,6 +52,8 @@ const mapPaymentMethod = (tabId) => {
 
 const BookingSummary = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const routeState = location.state || {};
   const { bookingId: routeBookingId } = useParams();
   const { user } = useAuth();
   const [show, setShow] = useState(null);
@@ -90,6 +93,16 @@ const BookingSummary = () => {
           const loadedShow = dbBooking.show && typeof dbBooking.show === 'object' ? dbBooking.show : null;
           const showId = loadedShow?._id || dbBooking.show || storedData?.showId;
 
+          const isCancellable = Boolean(
+            dbBooking.isCancellable ??
+            dbBooking.snapshot?.isCancellable ??
+            routeState.isCancellable ??
+            storedData?.isCancellable ??
+            loadedShow?.isCancellable ??
+            loadedShow?.theatre?.cancellationAllowed ??
+            dbBooking.theatre?.cancellationAllowed
+          );
+
           setBookingData({
             _id: dbBooking._id,
             bookingId: dbBooking.bookingId || dbBooking.bookingNumber || routeBookingId,
@@ -98,7 +111,10 @@ const BookingSummary = () => {
             selectedSeats: dbBooking.seatNumbers?.length ? dbBooking.seatNumbers : (storedData?.selectedSeats || []),
             subtotal: dbBooking.subtotal || storedData?.subtotal || 0,
             convenienceFee: dbBooking.convenienceFee || storedData?.convenienceFee || 20,
-            totalAmount: dbBooking.totalAmount || storedData?.totalAmount || 0
+            totalAmount: dbBooking.totalAmount || storedData?.totalAmount || 0,
+            isCancellable,
+            cancellationFeePercent: dbBooking.cancellationFeePercent ?? routeState.cancellationFeePercent ?? storedData?.cancellationFeePercent ?? 20,
+            cancellationCutoffMinutes: dbBooking.cancellationCutoffMinutes ?? routeState.cancellationCutoffMinutes ?? storedData?.cancellationCutoffMinutes ?? 120
           });
 
           if (loadedShow) {
@@ -125,10 +141,24 @@ const BookingSummary = () => {
         }
 
         if (storedData?.showId) {
-          setBookingData(storedData);
           const showRes = await getShowById(storedData.showId);
-          if (showRes.data?.data) {
-            setShow(showRes.data.data);
+          const loadedShowData = showRes.data?.data;
+          const isCancellable = Boolean(
+            storedData.isCancellable ??
+            routeState.isCancellable ??
+            loadedShowData?.isCancellable ??
+            loadedShowData?.theatre?.cancellationAllowed
+          );
+
+          setBookingData({
+            ...storedData,
+            isCancellable,
+            cancellationFeePercent: storedData.cancellationFeePercent ?? routeState.cancellationFeePercent ?? 20,
+            cancellationCutoffMinutes: storedData.cancellationCutoffMinutes ?? routeState.cancellationCutoffMinutes ?? 120
+          });
+
+          if (loadedShowData) {
+            setShow(loadedShowData);
             setLoading(false);
             return;
           }
@@ -439,11 +469,33 @@ const BookingSummary = () => {
                 </div>
               </div>
 
-              {/* Cancellation Warning Box (Screenshot 24) */}
-              <div className="bms-cancellation-notice">
-                <div className="fw-bold mb-1">Cancellation Unavailable</div>
-                <div>This venue does not support booking cancellation.</div>
-              </div>
+              {/* Cancellation Policy Box */}
+              {Boolean(bookingData?.isCancellable ?? bookingData?.snapshot?.isCancellable ?? show?.isCancellable ?? show?.theatre?.cancellationAllowed) ? (
+                <div
+                  className="rounded-2 p-3 mb-3"
+                  style={{
+                    backgroundColor: '#ECFDF3',
+                    border: '1px solid #ABEFC6',
+                    color: '#067647'
+                  }}
+                >
+                  <div className="d-flex align-items-center gap-1.5 mb-1 fw-bold" style={{ fontSize: '13px' }}>
+                    <IconCheck size={16} stroke={2.5} />
+                    <span>Cancellation Available</span>
+                  </div>
+                  <div style={{ fontSize: '12px', lineHeight: 1.5, color: '#05603A' }}>
+                    Cancel up to 2 hours before showtime for an <strong>80% refund</strong> (20% cancellation fee will be deducted).
+                  </div>
+                </div>
+              ) : (
+                <div className="bms-cancellation-notice">
+                  <div className="fw-bold mb-1 d-flex align-items-center gap-1.5">
+                    <IconAlertTriangle size={15} />
+                    <span>Cancellation Unavailable</span>
+                  </div>
+                  <div>This venue does not support booking cancellation. Non-refundable ticket.</div>
+                </div>
+              )}
 
               {/* Cost Breakdown */}
               <div className="py-2 border-top border-bottom small">
