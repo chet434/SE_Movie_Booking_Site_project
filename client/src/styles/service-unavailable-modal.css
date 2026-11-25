@@ -1,0 +1,88 @@
+/* ==========================================================================
+   Service Currently Unavailable Modal Styling
+   Matches CineBook's LocationUnavailable / Oops! dialog design
+   ========================================================================== */
+
+@keyframes cbSvcFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cbSvcScaleIn {
+  from {
+    transform: scale(0.97) translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.cb-svc-unavailable-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cbSvcFadeIn 0.15s ease-out;
+}
+
+.cb-svc-unavailable-card {
+  width: 360px;
+  max-width: 92vw;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  animation: cbSvcScaleIn 0.15s ease-out;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cb-svc-unavailable-icon {
+  color: #F84464;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cb-svc-unavailable-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0 0 10px 0;
+}
+
+.cb-svc-unavailable-msg {
+  font-size: 13.5px;
+  color: #555555;
+  line-height: 1.55;
+  margin: 0 0 22px 0;
+}
+
+.cb-svc-unavailable-btn {
+  background: #F84464;
+  color: #FFFFFF;
+  height: 42px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cb-svc-unavailable-btn:hover {
+  background: #DC354B;
+}

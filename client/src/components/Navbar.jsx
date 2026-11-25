@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLocationContext } from '../context/LocationContext';
@@ -11,6 +11,7 @@ import LocationModal from './LocationModal';
 import AccountDrawer from './AccountDrawer';
 import CinebookLogo from './CinebookLogo';
 import SearchOverlay from './SearchOverlay';
+import ServiceUnavailableModal from './ServiceUnavailableModal';
 import '../styles/navbar.css';
 
 const Navbar = () => {
@@ -19,9 +20,14 @@ const Navbar = () => {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false);
+  const [unavailableService, setUnavailableService] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleCloseUnavailable = useCallback(() => {
+    setUnavailableService(null);
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -225,19 +231,25 @@ const Navbar = () => {
                 { name: 'Movies', link: '/movies' },
                 { name: 'Stream', link: '/#premieres-section' },
                 { name: 'Events', link: '/#music-studio' },
-                { name: 'Plays', link: '/#plays' },
-                { name: 'Sports', link: '/#sports' },
-                { name: 'Activities', link: '/#activities' }
-              ].map((cat, i) => {
+                { name: 'Plays', link: '/#plays', unavailable: true },
+                { name: 'Sports', link: '/#sports', unavailable: true },
+                { name: 'Activities', link: '/#activities', unavailable: true }
+              ].map((cat) => {
                 const isMovieActive = cat.name === 'Movies' && (location.pathname === '/movies' || location.pathname.startsWith('/explore/movies'));
                 const isEventActive = cat.name === 'Events' && location.pathname.startsWith('/events');
                 const isStreamActive = cat.name === 'Stream' && (location.pathname.startsWith('/premiere') || location.hash === '#premieres-section');
                 const isActive = isMovieActive || isEventActive || isStreamActive;
                 return (
                   <Link
-                    key={i}
+                    key={cat.name}
                     to={cat.link}
                     onClick={(e) => {
+                      if (cat.unavailable) {
+                        e.preventDefault();
+                        e.currentTarget.blur();
+                        setUnavailableService(cat.name);
+                        return;
+                      }
                       if (cat.name === 'Movies') {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       } else if (cat.name === 'Stream') {
@@ -258,16 +270,7 @@ const Navbar = () => {
                         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                       }
                     }}
-                    className="text-decoration-none position-relative d-flex align-items-center h-100"
-                    style={{
-                      color: isActive ? '#111111' : '#333333',
-                      fontSize: '14px',
-                      fontWeight: isActive ? 600 : 400,
-                      borderBottom: isActive ? '2px solid #C41230' : '2px solid transparent',
-                      transition: 'color 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#C41230')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = isActive ? '#111111' : '#333333')}
+                    className={`cb-nav-link text-decoration-none text-nowrap${isActive ? ' active' : ''}`}
                   >
                     {cat.name}
                   </Link>
@@ -336,6 +339,13 @@ const Navbar = () => {
       <SearchOverlay
         isOpen={isSearchOverlayOpen}
         onClose={() => setIsSearchOverlayOpen(false)}
+      />
+
+      {/* Service Currently Unavailable Modal (Plays / Sports / Activities) */}
+      <ServiceUnavailableModal
+        isOpen={Boolean(unavailableService)}
+        serviceName={unavailableService}
+        onClose={handleCloseUnavailable}
       />
     </>
   );

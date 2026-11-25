@@ -39,6 +39,7 @@
   align-items: center;
   height: 100%;
   position: relative;
+  border-bottom: 2px solid transparent;
   transition: color 0.15s ease;
 }
 
@@ -50,6 +51,10 @@
   color: #111111;
   font-weight: 600;
   border-bottom: 2px solid #C41230;
+}
+
+.cb-nav-link.active:hover {
+  color: #C41230;
 }
 
 .cb-drawer-backdrop {

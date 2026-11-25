@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLocationContext, isSupportedCity } from '../context/LocationContext';
 import { useAuth } from '../context/AuthContext';
 import { getMovies } from '../services/api';
 import CinebookLogo from './CinebookLogo';
+import ServiceUnavailableModal from './ServiceUnavailableModal';
 import {
   IconHeadset,
   IconReceipt2,
@@ -110,6 +111,11 @@ const Footer = () => {
   const [newsletterModalOpen, setNewsletterModalOpen] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+  const [unavailableService, setUnavailableService] = useState(null);
+
+  const handleCloseUnavailable = useCallback(() => {
+    setUnavailableService(null);
+  }, []);
 
   // Fetch active movies once for directory links
   useEffect(() => {
@@ -345,9 +351,13 @@ const Footer = () => {
             <div className="cb-footer-links-wrap">
               {SPORTS.map((sport, idx) => (
                 <React.Fragment key={idx}>
-                  <Link to="/#sports" className="cb-footer-link">
+                  <button
+                    type="button"
+                    onClick={() => setUnavailableService('Sports')}
+                    className="cb-footer-link"
+                  >
                     {sport}
-                  </Link>
+                  </button>
                   {idx < SPORTS.length - 1 && <span className="cb-footer-divider">|</span>}
                 </React.Fragment>
               ))}
@@ -406,13 +416,7 @@ const Footer = () => {
                 <React.Fragment key={idx}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!isSupportedCity(city)) {
-                        setUnavailableCity(city);
-                      } else {
-                        navigate('/#plays');
-                      }
-                    }}
+                    onClick={() => setUnavailableService('Plays')}
                     className="cb-footer-link"
                   >
                     Plays in {city}
@@ -431,13 +435,7 @@ const Footer = () => {
                 <React.Fragment key={idx}>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (!isSupportedCity(city)) {
-                        setUnavailableCity(city);
-                      } else {
-                        navigate('/#activities');
-                      }
-                    }}
+                    onClick={() => setUnavailableService('Activities')}
                     className="cb-footer-link"
                   >
                     Activities in {city}
@@ -857,6 +855,12 @@ const Footer = () => {
           </div>
         </div>
       )}
+      {/* Service Currently Unavailable Modal (Sports / Plays / Activities) */}
+      <ServiceUnavailableModal
+        isOpen={Boolean(unavailableService)}
+        serviceName={unavailableService}
+        onClose={handleCloseUnavailable}
+      />
     </footer>
   );
 };
