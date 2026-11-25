@@ -10,6 +10,7 @@ const User = require('../models/User');
 const Screen = require('../models/Screen');
 const { deepTrust } = require('../utils/deepTrust');
 const { resolveShowCancellability, evaluateCancellation } = require('../utils/cancellationPolicy');
+const { isShowBookable } = require('../utils/showTime');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -136,10 +137,13 @@ const holdSeats = async (req, res) => {
 
     const cancellability = resolveShowCancellability(show);
 
-    // Only reject past shows in strict production mode
-    const showTime = show.startsAt || show.date;
-    if (process.env.NODE_ENV === 'production' && showTime && new Date(showTime) < new Date()) {
-      return res.status(400).json({ success: false, message: 'This show has already started.' });
+    // Reject expired shows immediately
+    if (!isShowBookable(show)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Booking closed. This showtime has already started.',
+        message: 'Booking closed. This showtime has already started.'
+      });
     }
 
     // Release expired holds before locking
@@ -329,6 +333,14 @@ const confirmBooking = async (req, res) => {
         .populate('movie', 'title poster language')
         .populate('theatre', 'name location address city cancellationAllowed cancellationFeePercent cancellationCutoffMinutes');
 
+      if (show && !isShowBookable(show)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Booking closed. This showtime has already started.',
+          message: 'Booking closed. This showtime has already started.'
+        });
+      }
+
       const cancellability = resolveShowCancellability(show);
 
       // Resolve seat labels
@@ -461,6 +473,13 @@ const confirmBooking = async (req, res) => {
     if (!show) {
       return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
     }
+    if (!isShowBookable(show)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Booking closed. This showtime has already started.',
+        message: 'Booking closed. This showtime has already started.'
+      });
+    }
     const cancellability = resolveShowCancellability(show);
     const finalAmount = totalAmount || (resolvedSeats.length * 299 + 20);
     const bNum = (bookingId && bookingId.startsWith('BMS')) ? bookingId : generateBookingNumber();
@@ -582,6 +601,14 @@ const createBooking = async (req, res) => {
 
     if (!show || !show.isActive) {
       return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
+    }
+
+    if (!isShowBookable(show)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Booking closed. This showtime has already started.',
+        message: 'Booking closed. This showtime has already started.'
+      });
     }
 
     const cancellability = resolveShowCancellability(show);

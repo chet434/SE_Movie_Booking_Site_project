@@ -54,6 +54,7 @@ app.use('/api/locations', require('./routes/locationRoutes')); // kept for backw
 app.use('/api/cities', require('./routes/cityRoutes'));
 app.use('/api/screens', require('./routes/screenRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/event-bookings', require('./routes/eventBookingRoutes'));
 
 
 // Health check

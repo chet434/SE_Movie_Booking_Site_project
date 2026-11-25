@@ -45,14 +45,15 @@ const createShowSeats = async (show, screen) => {
 };
 
 // @desc    Get shows by movie (grouped by theatre)
-// @route   GET /api/shows?movieId=&cityId=&location=&date=
+// @route   GET /api/shows?movieId=&cityId=&location=&date=&includePast=
 // @access  Public
 const getShowsByMovie = async (req, res, next) => {
   try {
-    const { movieId, cityId, location, date } = req.query;
+    const { movieId, cityId, location, date, includePast } = req.query;
+    const allowPast = includePast === 'true' || includePast === true;
 
     const groupedShows = await showRepo.findByMovie({
-      movieId, cityId, location, date
+      movieId, cityId, location, date, includePast: allowPast
     });
 
     res.json({ success: true, data: groupedShows });
@@ -89,6 +90,8 @@ const getShowSeats = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Show not found.' });
     }
 
+    const startsAtIso = result.startsAt ? new Date(result.startsAt).toISOString() : null;
+
     if (result.source === 'legacy' || !result.data) {
       const legacySeats = [];
       const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -108,10 +111,24 @@ const getShowSeats = async (req, res, next) => {
         }
       });
 
-      return res.json({ success: true, source: 'legacy', data: legacySeats });
+      return res.json({
+        success: true,
+        source: 'legacy',
+        data: legacySeats,
+        isExpired: result.isExpired ?? false,
+        isBookable: result.isBookable ?? true,
+        startsAt: startsAtIso
+      });
     }
 
-    res.json({ success: true, source: 'v2', data: result.data });
+    res.json({
+      success: true,
+      source: 'v2',
+      data: result.data,
+      isExpired: result.isExpired ?? false,
+      isBookable: result.isBookable ?? true,
+      startsAt: startsAtIso
+    });
   } catch (error) {
     next(error);
   }

@@ -17,10 +17,62 @@ const formatAddress = (addr, location) => {
   return '';
 };
 
-const TheatreShows = ({ theatreShows, movieId }) => {
+const TheatreShows = ({
+  theatreShows,
+  movieId,
+  now = Date.now(),
+  selectedDate,
+  todayDate,
+  onSelectTomorrow
+}) => {
   const navigate = useNavigate();
 
-  if (!theatreShows || theatreShows.length === 0) {
+  // Filter shows against live timestamp (excluding passed shows and empty theatres)
+  const visibleTheatres = (theatreShows || []).map((group) => {
+    const activeShows = (group.shows || []).filter((show) => {
+      if (show.isBookable === false) return false;
+      if (show.startsAt) {
+        const showTime = new Date(show.startsAt).getTime();
+        if (!isNaN(showTime) && showTime <= now) return false;
+      }
+      return true;
+    });
+
+    return {
+      ...group,
+      shows: activeShows
+    };
+  }).filter((group) => group.shows.length > 0);
+
+  const isTodaySelected = Boolean(selectedDate && todayDate && selectedDate === todayDate);
+
+  if (visibleTheatres.length === 0) {
+    if (isTodaySelected) {
+      return (
+        <div className="bg-white rounded-3 p-5 text-center my-4 border shadow-sm" role="status">
+          <IconDeviceTv size={42} stroke={1.5} className="text-muted mb-3" />
+          <h5 className="fw-bold text-dark mb-1">No more shows available for today</h5>
+          <p className="text-muted small mb-3">
+            All screenings for today have concluded. Book your tickets for upcoming dates!
+          </p>
+          {onSelectTomorrow && (
+            <button
+              type="button"
+              className="btn btn-danger px-4 py-2 rounded-2 fw-semibold shadow-sm"
+              style={{
+                backgroundColor: 'var(--bms-brand-red, #dc3558)',
+                borderColor: 'var(--bms-brand-red, #dc3558)',
+                fontSize: '14px'
+              }}
+              onClick={onSelectTomorrow}
+            >
+              View Tomorrow's Shows
+            </button>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="bg-white rounded-3 p-5 text-center my-4 border shadow-sm" role="status">
         <IconDeviceTv size={42} stroke={1.5} className="text-muted mb-3" />
@@ -71,7 +123,7 @@ const TheatreShows = ({ theatreShows, movieId }) => {
 
       {/* 2. Theatre Listings (Screenshot 21) */}
       <div className="d-flex flex-column gap-3">
-        {theatreShows.map(({ theatre, shows }) => {
+        {visibleTheatres.map(({ theatre, shows }) => {
           const sampleShow = shows?.[0];
           const isCancellable = shows?.some(s => s.isCancellable === true)
             ? true

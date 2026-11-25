@@ -58,6 +58,15 @@ export default function SeatSelectionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isHolding, setIsHolding] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  // 30-second live clock tick
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Fetch show details, seats, and sibling showtimes
   useEffect(() => {
@@ -179,6 +188,7 @@ export default function SeatSelectionPage() {
   };
 
   const handleSeatClick = (seat) => {
+    if (isCurrentShowExpired) return;
     if (seat.status === 'sold' || seat.status === 'booked' || seat.status === 'held') return;
 
     setError('');
@@ -197,7 +207,7 @@ export default function SeatSelectionPage() {
 
   // Submit hold sequence and navigate to checkout
   const handleProceed = async () => {
-    if (!selectedSeats.length) return;
+    if (isCurrentShowExpired || !selectedSeats.length) return;
     setIsHolding(true);
     setError('');
 
@@ -327,15 +337,32 @@ export default function SeatSelectionPage() {
     year: 'numeric'
   });
 
+  const showStartTime = show?.startsAt ? new Date(show.startsAt).getTime() : null;
+  const isCurrentShowExpired = Boolean(
+    show?.isExpired ||
+    (showStartTime && !isNaN(showStartTime) && showStartTime <= now)
+  );
+
   const currentDateStr = show?.date ? new Date(show.date).toISOString().slice(0, 10) : '';
-  const sameDateShows = theatreShows.filter((s) => {
+
+  // Filter sibling showtimes so passed shows are excluded
+  const unexpiredSiblingShows = theatreShows.filter((s) => {
+    if (s.isBookable === false) return false;
+    if (s.startsAt) {
+      const t = new Date(s.startsAt).getTime();
+      if (!isNaN(t) && t <= now) return false;
+    }
+    return true;
+  });
+
+  const sameDateShows = unexpiredSiblingShows.filter((s) => {
     if (!currentDateStr || !s.date) return true;
     return new Date(s.date).toISOString().slice(0, 10) === currentDateStr;
   });
 
   const uniqueShows = [];
   const seenTimes = new Set();
-  (sameDateShows.length > 0 ? sameDateShows : theatreShows).forEach((s) => {
+  (sameDateShows.length > 0 ? sameDateShows : unexpiredSiblingShows).forEach((s) => {
     if (s.startTime && !seenTimes.has(s.startTime)) {
       seenTimes.add(s.startTime);
       uniqueShows.push({
@@ -348,7 +375,7 @@ export default function SeatSelectionPage() {
 
   const availableShowtimes = uniqueShows.length > 0
     ? uniqueShows
-    : [{ time: show?.startTime || '10:30 AM', id: show?._id, isCurrent: true }];
+    : (isCurrentShowExpired ? [] : [{ time: show?.startTime || '10:30 AM', id: show?._id, isCurrent: true }]);
 
   const subtotal = selectedSeats.reduce((sum, s) => sum + (s.price || 500), 0);
   const totalAmount = subtotal > 0 ? subtotal + 20 : 0;
@@ -425,6 +452,23 @@ export default function SeatSelectionPage() {
           );
         })}
       </div>
+
+      {/* EXPIRED SHOW WARNING BANNER */}
+      {isCurrentShowExpired && (
+        <div className="alert alert-warning border border-warning-subtle shadow-sm mx-3 my-2 p-3 text-center rounded-3">
+          <h6 className="fw-bold text-dark mb-1">Booking closed — this showtime has already started.</h6>
+          <p className="text-muted small mb-3">
+            Tickets cannot be booked once a show has started. Please select an upcoming screening.
+          </p>
+          <Link
+            to={`/movies/${movieId || show?.movie?._id || ''}`}
+            className="btn btn-danger btn-sm px-4 py-2 rounded-2 fw-semibold shadow-sm"
+            style={{ backgroundColor: 'var(--cb-crimson)', borderColor: 'var(--cb-crimson)' }}
+          >
+            View Upcoming Showtimes
+          </Link>
+        </div>
+      )}
 
       {/* ERROR ALERT */}
       {error && (
@@ -682,12 +726,13 @@ export default function SeatSelectionPage() {
               </div>
               <button
                 type="button"
-                disabled={isHolding}
+                disabled={isHolding || isCurrentShowExpired}
                 onClick={handleProceed}
                 className="btn text-white px-5 py-2 font-medium fw-semibold rounded-2 shadow-sm"
                 style={{
-                  backgroundColor: 'var(--cb-crimson)',
+                  backgroundColor: isCurrentShowExpired ? '#6c757d' : 'var(--cb-crimson)',
                   fontSize: '15px',
+                  cursor: isCurrentShowExpired ? 'not-allowed' : 'pointer',
                   transition: 'background-color 0.15s ease'
                 }}
               >
@@ -696,6 +741,8 @@ export default function SeatSelectionPage() {
                     <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     Holding seats...
                   </>
+                ) : isCurrentShowExpired ? (
+                  'Showtime Started — Booking Closed'
                 ) : (
                   `Proceed to checkout (₹${totalAmount})`
                 )}

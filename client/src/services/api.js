@@ -166,6 +166,10 @@ export const getAllBookings = (params) => API.get('/bookings/all', { params });
 export const createPaymentOrder = (data) => API.post('/payments/create-order', data);
 export const getPayment = (bookingId) => API.get(`/payments/${bookingId}`);
 
+// ─── Event Booking APIs ───────────────────────────────────────────────────────
+export const createEventBooking = (data) => API.post('/event-bookings', data);
+export const getMyEventBookings = () => API.get('/event-bookings/my-bookings');
+
 // ─── Admin APIs ───────────────────────────────────────────────────────────────
 export const getAdminStats = () => API.get('/admin/stats');
 export const getAllUsers = () => API.get('/users');

@@ -15,6 +15,8 @@ import {
 } from '@tabler/icons-react';
 import { getMusicStudioEventById } from '../data/musicStudioEvents';
 import { useAuth } from '../context/AuthContext';
+import { createEventBooking } from '../services/api';
+import { purgeStorageKeys } from '../utils/userStorage';
 import CinebookLogo from '../components/CinebookLogo';
 import '../styles/event-tickets.css';
 
@@ -95,69 +97,88 @@ const EventTicketSelection = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  const handleCompletePayment = () => {
+  const handleCompletePayment = async () => {
     setIsProcessing(true);
 
-    setTimeout(() => {
-      const bookingId = `CB-EVT-${Date.now().toString().slice(-6)}`;
-      const bookingRef = `CB-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    try {
+      // Purge any legacy localStorage event booking keys to prevent cross-account leaks
+      purgeStorageKeys(
+        'cinebook_event_bookings',
+        'cinebook_event_bookings_all',
+        `cinebook_event_bookings_${user?._id || 'guest'}`,
+        `cinebook_event_bookings_undefined`,
+        `cinebook_event_bookings_null`
+      );
 
       const tiersBreakdown = Object.entries(selectedTiers)
         .filter(([_, qty]) => qty > 0)
         .map(([tierId, qty]) => {
           const tier = event.ticketTiers.find((t) => t.id === tierId);
           return {
-            id: tierId,
-            name: tier?.name || tierId,
-            price: tier?.price || 0,
-            quantity: qty,
-            total: (tier?.price || 0) * qty
+            tierId,
+            name:     tier?.name || tierId,
+            price:    tier?.price || 0,
+            quantity: qty
           };
         });
 
-      const newBooking = {
-        id: bookingId,
-        bookingRef,
-        eventId: event.id,
-        eventTitle: event.title,
-        dateFull: event.dateFull,
-        time: event.time,
-        venue: event.venue,
-        poster: event.poster,
-        banner: event.banner,
-        selectedTiers: tiersBreakdown,
-        totalTickets: totalQuantity,
+      const payload = {
+        eventId:       event.id,
+        eventTitle:    event.title,
+        poster:        event.poster || '',
+        venue:         event.venue,
+        dateFull:      event.dateFull,
+        time:          event.time,
+        items:         tiersBreakdown,
+        totalPasses:   totalQuantity,
         subtotal,
-        convenienceFee,
-        grandTotal,
+        bookingFee:    convenienceFee,
+        totalAmount:   grandTotal,
+        paymentMethod: paymentMethod.toUpperCase(),
         attendee: {
-          name: name || 'Valued Guest',
+          name:  name  || 'Valued Guest',
           email: email || 'guest@cinebook.com',
           phone: phone || '+91 9876543210'
-        },
-        paymentMethod,
-        bookedAt: new Date().toISOString()
+        }
       };
 
-      // Persist to user's localStorage
-      const userKey = `cinebook_event_bookings_${user?._id || 'guest'}`;
-      try {
-        const existing = JSON.parse(localStorage.getItem(userKey) || '[]');
-        const updated = [newBooking, ...existing];
-        localStorage.setItem(userKey, JSON.stringify(updated));
+      const res = await createEventBooking(payload);
+      const savedBooking = res.data?.data;
 
-        // Also save to global guest key for backup visibility
-        const globalList = JSON.parse(localStorage.getItem('cinebook_event_bookings_all') || '[]');
-        localStorage.setItem('cinebook_event_bookings_all', JSON.stringify([newBooking, ...globalList]));
-      } catch (err) {
-        console.error('Failed to save event booking to localStorage:', err);
-      }
+      // Map DB response to the shape the confirmation UI expects
+      const confirmedData = {
+        bookingRef:    savedBooking.passCode,
+        eventId:       savedBooking.eventId,
+        eventTitle:    savedBooking.eventTitle,
+        dateFull:      savedBooking.dateFull,
+        time:          savedBooking.time,
+        venue:         savedBooking.venue,
+        poster:        savedBooking.poster,
+        // Map items → selectedTiers for UI compatibility
+        selectedTiers: (savedBooking.items || []).map((it) => ({
+          name:     it.name,
+          quantity: it.quantity,
+          price:    it.price,
+          total:    it.price * it.quantity
+        })),
+        totalTickets:   savedBooking.totalPasses,
+        subtotal:       savedBooking.subtotal,
+        convenienceFee: savedBooking.bookingFee,
+        grandTotal:     savedBooking.totalAmount,
+        attendee:       savedBooking.attendee || {},
+        paymentMethod:  savedBooking.paymentMethod,
+        bookedAt:       savedBooking.createdAt
+      };
 
-      setConfirmedBooking(newBooking);
+      setConfirmedBooking(confirmedData);
       setIsProcessing(false);
       setStep(3);
       window.scrollTo({ top: 0, behavior: 'instant' });
-    }, 900);
+    } catch (err) {
+      console.error('Event booking failed:', err);
+      alert(err?.response?.data?.message || 'Payment failed. Please try again.');
+      setIsProcessing(false);
+    }
   };
 
   return (

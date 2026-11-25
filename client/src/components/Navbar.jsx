@@ -10,6 +10,7 @@ import {
 import LocationModal from './LocationModal';
 import AccountDrawer from './AccountDrawer';
 import CinebookLogo from './CinebookLogo';
+import SearchOverlay from './SearchOverlay';
 import '../styles/navbar.css';
 
 const Navbar = () => {
@@ -17,6 +18,7 @@ const Navbar = () => {
   const { selectedLocation } = useLocationContext();
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,9 +63,10 @@ const Navbar = () => {
               </Link>
 
               {/* Search Bar (width ~540px, height 36px, border 1px solid #E2E2E2, radius 4px) */}
-              <form
-                onSubmit={handleSearchSubmit}
-                className="d-none d-md-flex align-items-center position-relative flex-grow-1"
+              <div
+                role="search"
+                onClick={() => setIsSearchOverlayOpen(true)}
+                className="d-none d-md-flex align-items-center position-relative flex-grow-1 cursor-pointer"
                 style={{ maxWidth: '540px' }}
               >
                 <IconSearch
@@ -77,10 +80,12 @@ const Navbar = () => {
                 />
                 <input
                   type="text"
+                  readOnly
                   className="form-control rounded-1 w-100"
                   placeholder="Search for Movies, Events, Plays, Sports and Activities"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onClick={() => setIsSearchOverlayOpen(true)}
+                  onFocus={() => setIsSearchOverlayOpen(true)}
                   style={{
                     height: '36px',
                     paddingLeft: '38px',
@@ -89,14 +94,26 @@ const Navbar = () => {
                     backgroundColor: '#FFFFFF',
                     borderColor: '#E2E2E2',
                     color: '#222222',
-                    borderRadius: '4px'
+                    borderRadius: '4px',
+                    cursor: 'pointer'
                   }}
                 />
-              </form>
+              </div>
             </div>
 
             {/* Right Group: Location Selector & Auth-Dependent Controls */}
             <div className="d-flex align-items-center gap-3 flex-shrink-0">
+              {/* Mobile Search Button */}
+              <button
+                type="button"
+                className="btn btn-sm d-flex d-md-none align-items-center p-1 text-dark border-0 bg-transparent"
+                onClick={() => setIsSearchOverlayOpen(true)}
+                aria-label="Open search overlay"
+                style={{ cursor: 'pointer' }}
+              >
+                <IconSearch size={20} color="#222222" />
+              </button>
+
               {/* Location Selector Button */}
               <button
                 type="button"
@@ -313,6 +330,12 @@ const Navbar = () => {
       <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
+      />
+
+      {/* Full-Screen Interactive Search Overlay */}
+      <SearchOverlay
+        isOpen={isSearchOverlayOpen}
+        onClose={() => setIsSearchOverlayOpen(false)}
       />
     </>
   );

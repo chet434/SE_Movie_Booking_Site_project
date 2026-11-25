@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getMyBookings } from '../services/api';
+import { getMyBookings, getMyEventBookings } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getActiveUserId, purgeStorageKeys } from '../utils/userStorage';
 import CancelBookingModal from '../components/CancelBookingModal';
 import {
   IconTicket,
@@ -26,9 +27,24 @@ const MyBookings = () => {
   const [cancellationNotice, setCancellationNotice] = useState(null);
 
   useEffect(() => {
+    // Purge legacy localStorage event booking keys to prevent cross-account leaks
+    const uid = getActiveUserId(user);
+    purgeStorageKeys(
+      'cinebook_event_bookings',
+      'cinebook_event_bookings_all',
+      'cinebook_event_bookings_undefined',
+      'cinebook_event_bookings_null',
+      uid ? `cinebook_event_bookings_${uid}` : null,
+      uid ? `cinebook_event_bookings_guest` : null
+    );
+
+    // Clear state immediately when user changes so no stale data is shown
+    setBookings({ upcoming: [], past: [] });
+    setEventBookings([]);
+
     fetchBookings();
     loadEventBookings();
-  }, [user]);
+  }, [user?._id || user?.id]);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -47,21 +63,40 @@ const MyBookings = () => {
     }
   };
 
-  const loadEventBookings = () => {
+  const loadEventBookings = async () => {
+    if (!user) {
+      setEventBookings([]);
+      return;
+    }
     try {
-      const userKey = `cinebook_event_bookings_${user?._id || 'guest'}`;
-      const userEvents = JSON.parse(localStorage.getItem(userKey) || '[]');
-      const globalEvents = JSON.parse(localStorage.getItem('cinebook_event_bookings_all') || '[]');
-      
-      const map = new Map();
-      [...userEvents, ...globalEvents].forEach((b) => {
-        if (b && (b.bookingRef || b.id)) {
-          map.set(b.bookingRef || b.id, b);
-        }
-      });
-      setEventBookings(Array.from(map.values()));
+      const res = await getMyEventBookings();
+      const data = res.data?.data || [];
+      // Map DB shape → shape the UI card expects
+      const mapped = data.map((b) => ({
+        bookingRef:    b.passCode,
+        eventId:       b.eventId,
+        eventTitle:    b.eventTitle,
+        poster:        b.poster,
+        venue:         b.venue,
+        dateFull:      b.dateFull,
+        time:          b.time,
+        selectedTiers: (b.items || []).map((it) => ({
+          name:     it.name,
+          quantity: it.quantity,
+          price:    it.price
+        })),
+        totalTickets:   b.totalPasses,
+        subtotal:       b.subtotal,
+        convenienceFee: b.bookingFee,
+        grandTotal:     b.totalAmount,
+        attendee:       b.attendee || {},
+        paymentMethod:  b.paymentMethod,
+        bookedAt:       b.createdAt,
+        status:         b.status
+      }));
+      setEventBookings(mapped);
     } catch (err) {
-      console.error('Failed to load local event bookings:', err);
+      console.error('Failed to load event bookings:', err);
       setEventBookings([]);
     }
   };

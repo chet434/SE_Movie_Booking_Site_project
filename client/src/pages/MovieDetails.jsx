@@ -38,9 +38,18 @@ const MovieDetails = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [showFormatModal, setShowFormatModal] = useState(false);
   const showtimesRef = useRef(null);
+  const userManuallySelected = useRef(false);
+  const [now, setNow] = useState(() => Date.now());
 
+  // 30-second live clock tick
   useEffect(() => {
-    // Generate next 7 days for the date selector ribbon in local date format
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const generateNext7Days = () => {
     const nextDays = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date();
@@ -50,9 +59,15 @@ const MovieDetails = () => {
       const day = String(d.getDate()).padStart(2, '0');
       nextDays.push(`${year}-${month}-${day}`);
     }
+    return nextDays;
+  };
+
+  useEffect(() => {
+    // Generate next 7 days for the date selector ribbon in local date format
+    const nextDays = generateNext7Days();
     setDates(nextDays);
-    setSelectedDate(nextDays[0]);
-  }, []);
+    setSelectedDate((prev) => (prev ? prev : nextDays[0]));
+  }, [now]);
 
   useEffect(() => {
     fetchMovie();
@@ -63,6 +78,22 @@ const MovieDetails = () => {
       fetchShows();
     }
   }, [selectedDate, movie?._id, id]);
+
+  const countUpcomingShows = (groups, checkTime) => {
+    if (!Array.isArray(groups)) return 0;
+    let count = 0;
+    for (const g of groups) {
+      for (const s of (g.shows || [])) {
+        if (s.isBookable === false) continue;
+        if (s.startsAt) {
+          const t = new Date(s.startsAt).getTime();
+          if (!isNaN(t) && t <= checkTime) continue;
+        }
+        count++;
+      }
+    }
+    return count;
+  };
 
   const fetchMovie = async () => {
     setLoading(true);
@@ -86,11 +117,29 @@ const MovieDetails = () => {
     try {
       const targetId = movie?._id || id;
       const res = await getShowsByMovie(targetId, { date: selectedDate });
-      setTheatreShows(res.data?.data || []);
+      const showsData = res.data?.data || [];
+      setTheatreShows(showsData);
+
+      // Auto-advance when Today's shows are all over and user hasn't manually selected today
+      const allDays = dates.length ? dates : generateNext7Days();
+      const todayDate = allDays[0];
+      const tomorrowDate = allDays[1];
+
+      if (selectedDate === todayDate && !userManuallySelected.current) {
+        const upcomingCount = countUpcomingShows(showsData, Date.now());
+        if (upcomingCount === 0 && tomorrowDate) {
+          setSelectedDate(tomorrowDate);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch shows:', error);
       setTheatreShows([]);
     }
+  };
+
+  const handleDateSelect = (date) => {
+    userManuallySelected.current = true;
+    setSelectedDate(date);
   };
 
   const handleBookTicketsClick = () => {
@@ -510,11 +559,23 @@ const MovieDetails = () => {
           <DateSelector
             dates={dates}
             selectedDate={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={handleDateSelect}
           />
 
           {/* Theatre and Shows List */}
-          <TheatreShows theatreShows={theatreShows} movieId={id} />
+          <TheatreShows
+            theatreShows={theatreShows}
+            movieId={id}
+            now={now}
+            selectedDate={selectedDate}
+            todayDate={dates[0]}
+            onSelectTomorrow={() => {
+              userManuallySelected.current = true;
+              if (dates[1]) {
+                setSelectedDate(dates[1]);
+              }
+            }}
+          />
         </section>
       </div>
 

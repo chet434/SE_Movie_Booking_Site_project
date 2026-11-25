@@ -8,9 +8,10 @@ const ShowSeat = require('../models/ShowSeat');
 const { escapeRegex } = require('../utils/escapeRegex');
 const { deepTrust } = require('../utils/deepTrust');
 const { resolveShowCancellability } = require('../utils/cancellationPolicy');
+const { getShowStartDate, isShowBookable, getISTCalendarDateString } = require('../utils/showTime');
 
 class ShowRepository {
-  async findByMovie({ movieId, cityId, location, date, isActive = true } = {}) {
+  async findByMovie({ movieId, cityId, location, date, isActive = true, includePast = false } = {}) {
     if (!movieId) {
       throw new Error('Movie ID is required');
     }
@@ -26,13 +27,13 @@ class ShowRepository {
     let showFilter = { movie: resolvedMovieId, isActive };
 
     if (date) {
-      const showDate = new Date(date);
-      showDate.setHours(0, 0, 0, 0);
-      const nextDay = new Date(showDate);
-      nextDay.setDate(nextDay.getDate() + 1);
+      const dateStr = String(date).split('T')[0];
+      const istStart = new Date(`${dateStr}T00:00:00+05:30`);
+      const istEnd = new Date(`${dateStr}T23:59:59.999+05:30`);
+
       showFilter.$or = [
-        { startsAt: { $gte: showDate, $lt: nextDay } },
-        { date: { $gte: showDate, $lt: nextDay } }
+        { startsAt: { $gte: istStart, $lte: istEnd } },
+        { date: { $gte: istStart, $lte: istEnd } }
       ];
     }
 
@@ -58,8 +59,25 @@ class ShowRepository {
       .populate('screen', 'name screenNumber formatCapabilities capacity')
       .sort({ startsAt: 1, startTime: 1 });
 
+    const now = new Date();
     const grouped = {};
     for (const show of shows) {
+      const showStartDate = getShowStartDate(show);
+
+      if (date) {
+        const targetDateStr = String(date).split('T')[0];
+        const showCalendarDate = getISTCalendarDateString(showStartDate);
+        if (showCalendarDate && showCalendarDate !== targetDateStr) {
+          continue;
+        }
+      }
+
+      const bookable = isShowBookable(show, now);
+
+      if (!includePast && !bookable) {
+        continue;
+      }
+
       const theatreId = show.theatre._id.toString();
 
       if (!grouped[theatreId]) {
@@ -91,8 +109,8 @@ class ShowRepository {
 
       grouped[theatreId].shows.push({
         _id: show._id,
-        startsAt: show.startsAt,
-        endsAt: show.endsAt,
+        startsAt: showStartDate.toISOString(),
+        endsAt: show.endsAt || new Date(showStartDate.getTime() + 150 * 60 * 1000).toISOString(),
         startTime: show.startTime,
         date: show.date,
         format: show.format,
@@ -102,13 +120,14 @@ class ShowRepository {
         pricing: show.pricing || show.seatPrices,
         seatPrices: show.seatPrices,
         availableSeats,
+        isBookable: bookable,
         isCancellable: cancellability.isCancellable,
         cancellationFeePercent: cancellability.feePercent,
         cancellationCutoffMinutes: cancellability.cutoffMinutes
       });
     }
 
-    return Object.values(grouped);
+    return Object.values(grouped).filter(group => group.shows && group.shows.length > 0);
   }
 
   async findById(id, { includeSeats = false } = {}) {
@@ -128,7 +147,13 @@ class ShowRepository {
     if (!show) return null;
 
     const cancellability = resolveShowCancellability(show);
+    const startDate = getShowStartDate(show);
+    const bookable = isShowBookable(show);
+
     const showObj = show.toObject ? show.toObject() : { ...show };
+    showObj.startsAt = startDate;
+    showObj.isExpired = !bookable;
+    showObj.isBookable = bookable;
     showObj.isCancellable = cancellability.isCancellable;
     showObj.cancellationFeePercent = cancellability.feePercent;
     showObj.cancellationCutoffMinutes = cancellability.cutoffMinutes;

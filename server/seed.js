@@ -10,6 +10,7 @@ const Theatre = require('./models/Theatre');
 const Show = require('./models/Show');
 const Location = require('./models/Location');
 const City = require('./models/City');
+const { parseISTShowTime } = require('./utils/showTime');
 
 const seedData = async () => {
   try {
@@ -877,12 +878,18 @@ const seedData = async () => {
         // Pick 2-3 random showtimes
         const times = showTimes.slice(0, 2 + Math.floor(Math.random() * 2));
         for (const time of times) {
+          const startsAt = parseISTShowTime(showDate, time);
+          const durationMins = assign.movie.durationMinutes || 150;
+          const endsAt = new Date(startsAt.getTime() + durationMins * 60 * 1000);
+
           shows.push({
             movie: assign.movie._id,
             theatre: assign.theatre._id,
             screenName: assign.screen,
             date: new Date(showDate),
             startTime: time,
+            startsAt,
+            endsAt,
             format: assign.format,
             seatPrices: {
               regular: assign.format === '3D' ? 200 : 150,
