@@ -1,14 +1,16 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { getJwtConfig } = require('../config/security');
 
-// Protect routes — verify JWT token
+// Protect routes — verify JWT access token
 const protect = async (req, res, next) => {
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const config = getJwtConfig();
+      const decoded = jwt.verify(token, config.secret);
       req.user = await User.findById(decoded.id).select('-password');
 
       if (!req.user) {
@@ -35,6 +37,48 @@ const protect = async (req, res, next) => {
   }
 };
 
+// Refresh access token using refresh token
+const refresh = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required.'
+      });
+    }
+
+    const config = getJwtConfig();
+    const decoded = jwt.verify(refreshToken, config.refreshSecret);
+
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    const newToken = jwt.sign({ id: user._id }, config.secret, {
+      expiresIn: config.expiresIn
+    });
+
+    res.json({
+      success: true,
+      data: {
+        token: newToken,
+        expiresIn: config.expiresIn
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired refresh token.'
+    });
+  }
+};
+
 // Admin-only middleware
 const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
@@ -47,4 +91,4 @@ const adminOnly = (req, res, next) => {
   }
 };
 
-module.exports = { protect, adminOnly };
+module.exports = { protect, adminOnly, refresh };

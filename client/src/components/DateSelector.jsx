@@ -1,42 +1,91 @@
+const parseLocalDate = (dateStr) => {
+  if (!dateStr) return new Date();
+  const parts = String(dateStr).split('T')[0].split('-');
+  if (parts.length === 3) {
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0);
+  }
+  return new Date(dateStr);
+};
+
 const DateSelector = ({ dates, selectedDate, onSelect }) => {
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (d.getTime() === today.getTime()) return 'Today';
-    if (d.getTime() === tomorrow.getTime()) return 'Tomorrow';
-
-    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const getDayNumber = (date) => {
+    const d = parseLocalDate(date);
+    return d.getDate();
   };
 
-  const getDayName = (date) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('en-IN', { weekday: 'short' });
+  const getDayLabel = (date) => {
+    const d = parseLocalDate(date);
+    return d.toLocaleDateString('en-IN', { weekday: 'short' }).toUpperCase();
+  };
+
+  const getMonthName = (date) => {
+    const d = parseLocalDate(date);
+    return d.toLocaleDateString('en-IN', { month: 'short' }).toUpperCase();
   };
 
   return (
-    <div className="d-flex gap-2 overflow-auto pb-2 mb-4" style={{ scrollbarWidth: 'none' }}>
-      {dates.map(date => {
+    <div
+      className="d-flex gap-2 overflow-auto py-2"
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      role="tablist"
+      aria-label="Select show date"
+    >
+      {dates.map((date) => {
         const isSelected = selectedDate === date;
         return (
           <button
             key={date}
-            className="btn flex-shrink-0 text-center"
+            type="button"
+            role="tab"
+            aria-selected={isSelected}
             onClick={() => onSelect(date)}
-            style={{ 
-              minWidth: '80px', 
-              borderRadius: '10px',
-              backgroundColor: isSelected ? 'var(--cs-accent)' : 'var(--cs-surface)',
-              color: isSelected ? 'var(--cs-text-on-accent)' : 'var(--cs-text-primary)',
-              border: `1px solid ${isSelected ? 'var(--cs-accent)' : 'var(--cs-border)'}`,
-              transition: 'var(--cs-transition-fast)'
+            className="btn flex-shrink-0 d-flex flex-column align-items-center justify-content-center p-2 rounded-2"
+            style={{
+              minWidth: '56px',
+              height: '68px',
+              backgroundColor: isSelected ? 'var(--bms-brand-red)' : '#FFFFFF',
+              color: isSelected ? '#FFFFFF' : 'var(--bms-text-primary)',
+              border: isSelected ? 'none' : '1px solid var(--bms-border-medium)',
+              boxShadow: isSelected ? '0 4px 10px rgba(220, 53, 88, 0.3)' : 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
-            <div className="small" style={{ opacity: isSelected ? 1 : 0.7 }}>{getDayName(date)}</div>
-            <div className="fw-bold">{formatDate(date)}</div>
+            {/* Day name (e.g. TUE) */}
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                opacity: isSelected ? 0.9 : 0.6
+              }}
+            >
+              {getDayLabel(date)}
+            </span>
+
+            {/* Date number (e.g. 24) */}
+            <span
+              style={{
+                fontFamily: 'var(--bms-font-primary)',
+                fontSize: '18px',
+                fontWeight: 700,
+                lineHeight: 1.1,
+                margin: '2px 0'
+              }}
+            >
+              {getDayNumber(date)}
+            </span>
+
+            {/* Month (e.g. NOV) */}
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 600,
+                opacity: isSelected ? 0.9 : 0.6
+              }}
+            >
+              {getMonthName(date)}
+            </span>
           </button>
         );
       })}

@@ -1,9 +1,9 @@
-import { FaSearch } from 'react-icons/fa';
+import { Icon } from './ui';
 
 const SearchBar = ({ searchQuery, setSearchQuery }) => {
   return (
     <div className="position-relative">
-      <FaSearch className="position-absolute text-muted"
+      <Icon name="icon-search" className="position-absolute text-muted"
         style={{ left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
       <input
         type="text"

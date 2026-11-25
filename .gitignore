@@ -1,5 +1,23 @@
 node_modules
+node_modules/
 .DS_Store
 .env
+.env.*
+!.env.example
 dist
+dist/
 build
+build/
+coverage
+coverage/
+server/coverage
+server/coverage/
+*.log
+.playwright-mcp
+.playwright-mcp/
+BookMyShow
+BookMyShow/
+bookMyShow img
+bookMyShow img/
+references
+references/

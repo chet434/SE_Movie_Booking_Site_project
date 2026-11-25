@@ -109,20 +109,20 @@ const WeekendOfferBanner = () => (
 );
 
 const UpcomingMovieShelf = () => {
-  // Mock data for upcoming movies
   const upcomingMovies = [
     { id: 1, title: 'Quantum Drift', date: 'Oct 15', img: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=400&h=600&fit=crop' },
     { id: 2, title: 'The Last Echo', date: 'Oct 22', img: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&h=600&fit=crop' },
     { id: 3, title: 'Neon Shadows', date: 'Nov 05', img: 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?w=400&h=600&fit=crop' },
-    { id: 4, title: 'Lunar Horizon', date: 'Nov 12', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=600&fit=crop' }
+    { id: 4, title: 'Lunar Horizon', date: 'Nov 12', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=600&fit=crop' },
+    { id: 5, title: 'KGF Chapter 2', date: 'Dec 25', img: 'https://placehold.co/400x600?text=KGF+Chapter+2' }
   ];
 
   return (
     <div className="mb-5">
       <SectionHeader title="Coming Soon" actionText="View all" />
-      <div className="row g-3 g-md-4">
+      <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-md-4">
         {upcomingMovies.map(movie => (
-          <div key={movie.id} className="col-6 col-md-3">
+          <div key={movie.id} className="col">
             <Link to={`/movies/${movie.id}`} className="text-decoration-none">
               <div className="movie-card position-relative mb-2" style={{ aspectRatio: '2/3' }}>
                 <img src={movie.img} alt={movie.title} className="w-100 h-100 object-fit-cover" />

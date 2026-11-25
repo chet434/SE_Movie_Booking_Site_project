@@ -5,10 +5,17 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 import App from './App.jsx';
 
+import { ThemeProvider } from './context/ThemeContext';
+import { LocationProvider } from './context/LocationContext';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <ThemeProvider>
+        <LocationProvider>
+          <App />
+        </LocationProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
 );

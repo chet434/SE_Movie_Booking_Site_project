@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllShows, addShow, updateShow, deleteShow, getMovies, getTheatres } from '../../services/api';
-import { FaPlus, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
+import { Icon } from '../../components/ui';
 
 const emptyShow = {
   movie: '', theatre: '', screenName: '', date: '', startTime: '',
@@ -88,7 +88,7 @@ const ManageShows = () => {
         <h3 className="fw-bold mb-0">Manage Shows</h3>
         <button className="btn btn-warning fw-bold"
           onClick={() => { setShowForm(!showForm); setEditing(null); setForm(emptyShow); }}>
-          {showForm ? <><FaTimes className="me-1" />Close</> : <><FaPlus className="me-1" />Add Show</>}
+          {showForm ? <><Icon name="icon-x" size={14} className="me-1" />Close</> : <><Icon name="icon-plus" size={14} className="me-1" />Add Show</>}
         </button>
       </div>
 
@@ -192,10 +192,10 @@ const ManageShows = () => {
                   <td>{show.bookedSeats?.length || 0}/48</td>
                   <td>
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleEdit(show)}>
-                      <FaEdit />
+                      <Icon name="icon-edit" size={14} />
                     </button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(show._id)}>
-                      <FaTrash />
+                      <Icon name="icon-trash" size={14} />
                     </button>
                   </td>
                 </tr>

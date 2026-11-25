@@ -1,0 +1,352 @@
+/* ==========================================================================
+   CineBook Global Footer Styling (BookMyShow Multi-Band Dark Layout)
+   ========================================================================== */
+
+.cb-footer {
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #CCCCCC;
+  margin-top: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Band 1: Partner Strip ("List your Show") (#313035)
+   -------------------------------------------------------------------------- */
+.cb-footer-partner-strip {
+  background-color: #313035;
+  padding: 18px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cb-footer-partner-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cb-footer-partner-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cb-footer-partner-icon {
+  width: 32px;
+  height: 32px;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cb-footer-partner-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.cb-footer-partner-copy {
+  font-size: 14px;
+  color: #E5E5E5;
+  margin: 0;
+  font-weight: 400;
+}
+
+.cb-footer-partner-btn {
+  background-color: #EC5E71;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.cb-footer-partner-btn:hover {
+  background-color: #DC354B;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Band 2: 3-Column Customer Utility Strip (#404043)
+   -------------------------------------------------------------------------- */
+.cb-footer-utility-strip {
+  background-color: #404043;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cb-footer-utility-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .cb-footer-utility-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.cb-footer-utility-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.cb-footer-utility-icon {
+  color: #999999;
+  margin-bottom: 10px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.cb-footer-utility-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #A5A5A5;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.cb-footer-utility-item:hover .cb-footer-utility-icon {
+  color: #FFFFFF;
+  transform: translateY(-3px);
+}
+
+.cb-footer-utility-item:hover .cb-footer-utility-label {
+  color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   Band 3: Categorized Directory Links (#333338)
+   -------------------------------------------------------------------------- */
+.cb-footer-main {
+  background-color: #333338;
+  padding: 36px 0 44px;
+}
+
+.cb-footer-main-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.cb-footer-dir-group {
+  margin-bottom: 22px;
+}
+
+.cb-footer-dir-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #A5A5A5;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+}
+
+.cb-footer-links-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  line-height: 1.85;
+}
+
+.cb-footer-link {
+  font-size: 11.5px;
+  color: #7F7F7F;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  font-family: inherit;
+}
+
+.cb-footer-link:hover {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.cb-footer-divider {
+  color: #5A5A5E;
+  margin: 0 7px;
+  font-size: 11px;
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   Band 4: Centered Brand Logo Divider
+   -------------------------------------------------------------------------- */
+.cb-footer-logo-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 40px 0 28px;
+}
+
+.cb-footer-rule {
+  flex: 1;
+  height: 1px;
+  background-color: #5D5D5F;
+}
+
+.cb-footer-logo-wrap {
+  padding: 0 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   Band 5: Social Media Row
+   -------------------------------------------------------------------------- */
+.cb-footer-social-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.cb-footer-social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #5D5D5F;
+  color: #333338;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.15s ease, color 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.cb-footer-social-btn:hover {
+  background-color: #FFFFFF;
+  color: #111111;
+  transform: translateY(-2px);
+}
+
+/* --------------------------------------------------------------------------
+   Band 6: Copyright & Legal Notice
+   -------------------------------------------------------------------------- */
+.cb-footer-legal-wrap {
+  text-align: center;
+  max-width: 1080px;
+  margin: 0 auto;
+  font-size: 11px;
+  color: #666666;
+  line-height: 1.65;
+}
+
+.cb-footer-copyright {
+  margin: 0 0 6px 0;
+  font-weight: 500;
+}
+
+.cb-footer-disclaimer {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Footer Interactive Modals
+   -------------------------------------------------------------------------- */
+.cb-footer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.cb-footer-modal-card {
+  background-color: #FFFFFF;
+  color: #1F2937;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: cbModalFadeIn 0.2s ease-out;
+}
+
+@keyframes cbModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cb-footer-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cb-footer-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.cb-footer-modal-body {
+  padding: 24px;
+}
+
+.cb-footer-modal-close {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.cb-footer-modal-close:hover {
+  color: #111827;
+}

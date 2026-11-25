@@ -1,0 +1,276 @@
+/**
+ * auth.css — CineBook Authentication Card & Form Styles
+ */
+
+.cb-auth-page {
+  background-color: #EAECEF;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cb-auth-card {
+  background-color: #FFFFFF;
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cb-auth-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111111;
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+
+.cb-auth-subheading {
+  font-size: 13px;
+  color: #555555;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Social Buttons */
+.cb-social-btn {
+  width: 100%;
+  height: 44px;
+  background-color: #FFFFFF;
+  border: 1px solid #9E9E9E;
+  border-radius: 6px;
+  color: #111111;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.cb-social-btn:hover {
+  background-color: #F8F9FA;
+  border-color: #777777;
+}
+
+/* Horizontal OR Divider */
+.cb-auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.cb-auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #E0E0E0;
+}
+
+.cb-auth-divider span {
+  position: relative;
+  background-color: #FFFFFF;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666666;
+  letter-spacing: 0.5px;
+}
+
+/* Interactive Tab Switcher */
+.cb-auth-tabs {
+  display: flex;
+  border-bottom: 1px solid #E0E0E0;
+  margin-bottom: 22px;
+}
+
+.cb-auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #757575;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cb-auth-tab.active {
+  color: #8F1432;
+  font-weight: 600;
+  border-bottom-color: #8F1432;
+}
+
+/* Form Controls */
+.cb-form-group {
+  margin-bottom: 16px;
+}
+
+.cb-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #222222;
+  margin-bottom: 6px;
+}
+
+.cb-form-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #A6A6A6;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #111111;
+  background-color: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cb-form-input:focus {
+  border-color: #8F1432;
+  box-shadow: 0 0 0 3px rgba(143, 20, 50, 0.12);
+}
+
+.cb-form-input::placeholder {
+  color: #888888;
+}
+
+/* Combined Prefix for Mobile */
+.cb-phone-group {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border: 1px solid #A6A6A6;
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cb-phone-group:focus-within {
+  border-color: #8F1432;
+  box-shadow: 0 0 0 3px rgba(143, 20, 50, 0.12);
+}
+
+.cb-phone-prefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  background-color: #F8F9FA;
+  border-right: 1px solid #D0D0D0;
+  height: 100%;
+  user-select: none;
+}
+
+.cb-phone-input {
+  flex: 1;
+  border: none;
+  height: 100%;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111111;
+  outline: none;
+}
+
+/* Password Eye Toggle */
+.cb-password-container {
+  position: relative;
+}
+
+.cb-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #777777;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.cb-password-toggle:hover {
+  color: #222222;
+}
+
+/* Submit CTA Button */
+.cb-auth-submit-btn {
+  width: 100%;
+  height: 44px;
+  background-color: #C41230;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+  margin-top: 20px;
+}
+
+.cb-auth-submit-btn:hover:not(:disabled) {
+  background-color: #A80E28;
+}
+
+.cb-auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Links & Footer */
+.cb-auth-link {
+  color: #8F1432;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cb-auth-link:hover {
+  text-decoration: underline;
+}
+
+.cb-legal-text {
+  font-size: 12px;
+  color: #666666;
+  text-align: center;
+  line-height: 1.5;
+  margin-top: 18px;
+}
+
+.cb-auth-footer-toggle {
+  text-align: center;
+  font-size: 13px;
+  color: #444444;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #EEEEEE;
+}

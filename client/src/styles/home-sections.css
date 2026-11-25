@@ -1,0 +1,381 @@
+/* ==========================================================================
+   Home Page Sections: Premieres Band & Your Music Studio Carousel
+   ========================================================================== */
+
+/* --- 1. PREMIERES SECTION (Full-Width Dark Band) --- */
+.cb-premieres-band,
+#premieres-section {
+  width: 100%;
+  background-color: #2B3148;
+  padding: 36px 0 48px;
+  position: relative;
+  overflow: hidden;
+  scroll-margin-top: 108px;
+}
+
+.cb-premieres-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Brand Banner Row */
+.cb-premiere-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.cb-premiere-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #DC354B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(220, 53, 75, 0.4);
+}
+
+.cb-premiere-brand-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #FFFFFF;
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.cb-premiere-brand-sub {
+  font-size: 12.5px;
+  color: #D0D4E4;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+/* Section Heading */
+.cb-premiere-heading-wrap {
+  margin-bottom: 18px;
+}
+
+.cb-premiere-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.cb-premiere-subheading {
+  font-size: 14px;
+  color: #D8DCEB;
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+/* --- 2. CAROUSEL WRAPPERS (Shared by Premieres & Music Studio) --- */
+.cb-carousel-container {
+  position: relative;
+  width: 100%;
+}
+
+.cb-carousel-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  padding-bottom: 8px;
+}
+
+.cb-carousel-track::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* 5 cards on desktop, 3 on tablet, 2 on mobile */
+.cb-carousel-card {
+  flex: 0 0 calc((100% - (4 * 24px)) / 5);
+  min-width: calc((100% - (4 * 24px)) / 5);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 991.98px) {
+  .cb-carousel-track {
+    gap: 16px;
+  }
+  .cb-carousel-card {
+    flex: 0 0 calc((100% - (2 * 16px)) / 3);
+    min-width: calc((100% - (2 * 16px)) / 3);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .cb-carousel-card {
+    flex: 0 0 calc((100% - 16px) / 2);
+    min-width: calc((100% - 16px) / 2);
+  }
+}
+
+.cb-carousel-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Poster Wrappers */
+.cb-premiere-poster-box {
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  background-color: #1A1E2E;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.cb-premiere-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.cb-carousel-card:hover .cb-premiere-poster-img {
+  transform: scale(1.05);
+}
+
+/* Flush Bottom-Left PREMIERE Ribbon */
+.cb-premiere-ribbon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: #DC354B;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-top-right-radius: 2px;
+  z-index: 2;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Premiere Text Stack */
+.cb-premiere-meta {
+  padding-top: 10px;
+}
+
+.cb-premiere-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.3;
+  margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cb-premiere-lang {
+  font-size: 14px;
+  color: #C5CAE0;
+  margin-top: 4px;
+  margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Floating Circular Chevron Scroll Buttons */
+.cb-carousel-nav-btn {
+  position: absolute;
+  top: 38%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.cb-carousel-nav-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.cb-carousel-nav-btn.prev {
+  left: -20px;
+}
+
+.cb-carousel-nav-btn.next {
+  right: -20px;
+}
+
+@media (max-width: 991.98px) {
+  .cb-carousel-nav-btn.prev {
+    left: 4px;
+  }
+  .cb-carousel-nav-btn.next {
+    right: 4px;
+  }
+}
+
+/* --- 3. YOUR MUSIC STUDIO SECTION (Light Background) --- */
+.cb-music-studio-section {
+  width: 100%;
+  background-color: #F5F5F5;
+  padding: 40px 0 48px;
+}
+
+.cb-music-studio-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.cb-music-studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cb-music-studio-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333333;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.cb-music-studio-see-all {
+  font-size: 14px;
+  font-weight: 500;
+  color: #DC354B;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  transition: color 0.15s ease;
+}
+
+.cb-music-studio-see-all:hover {
+  text-decoration: underline;
+  color: #C41230;
+}
+
+/* Music Studio Card Details */
+.cb-music-poster-box {
+  aspect-ratio: 400 / 665;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  background-color: #000000;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cb-music-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.cb-carousel-card:hover .cb-music-poster-img {
+  transform: scale(1.05);
+}
+
+/* Multi-Venue Badge (Top-Left) */
+.cb-music-multi-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Solid Black Bottom Date Strip */
+.cb-music-date-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 38px;
+  background-color: #000000;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  letter-spacing: 0.2px;
+}
+
+/* Music Studio Metadata */
+.cb-music-meta {
+  padding-top: 10px;
+}
+
+.cb-music-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #222222;
+  line-height: 1.3;
+  margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cb-music-venue {
+  font-size: 14px;
+  color: #666666;
+  margin-top: 4px;
+  margin-bottom: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cb-music-category {
+  font-size: 13px;
+  color: #757575;
+  margin-top: 2px;
+  margin-bottom: 0;
+}

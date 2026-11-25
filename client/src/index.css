@@ -1,43 +1,135 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* FilmTIX Colour Tokens */
-  --cs-outer-canvas: #0A0A0A;
-  --cs-canvas: #F6F6F6;
-  --cs-surface: #ffffff;
-  --cs-surface-raised: #FFFFFF;
-  --cs-surface-muted: #F1F0F2;
-  --cs-border: #E3E0E5;
-  --cs-text-primary: #151515;
-  --cs-text-secondary: #6A6570;
-  --cs-text-disabled: #A4A0A8;
-  --cs-text-on-accent: #111111;
-  --cs-accent: #CEC9EA;
-  --cs-accent-hover: #BEB9DA;
-  --cs-accent-active: #948FB0;
-  --cs-accent-soft: #EEECEF;
-  --cs-action-primary: #111111;
-  --cs-action-hover: #292929;
-  --cs-action-active: #000000;
-  --cs-text-on-action: #FFFFFF;
-  --cs-success: #237a57;
-  --cs-success-soft: #e0f1e8;
-  --cs-warning: #9a5a00;
-  --cs-warning-soft: #fff0d8;
-  --cs-danger: #B42338;
-  --cs-danger-soft: #F9E5E8;
-  --cs-info: #165d8b;
-  --cs-focus-ring: #948FB0;
-  --cs-shadow: 0 10px 28px rgba(28, 27, 26, 0.10);
+  /* ==========================================================================
+     BookMyShow Design Tokens (Derived from 24 Reference Screenshots)
+     ========================================================================== */
+
+  /* Brand Palette */
+  --bms-brand-red: #DC3558;
+  --bms-brand-red-hover: #C22D4E;
+  --bms-brand-red-active: #AB2745;
+  --bms-brand-red-soft: rgba(220, 53, 88, 0.08);
+  --bms-brand-red-subtle: #FFF0F2;
+
+  /* Surfaces & Backgrounds (Clean, White-Dominant) */
+  --bms-bg-page: #F5F5F7;
+  --bms-bg-white: #FFFFFF;
+  --bms-bg-card: #FFFFFF;
+  --bms-bg-secondary: #F2F2F2;
+  --bms-bg-dark-nav: #333338;
+  --bms-bg-dark-hero: #1A1A24;
+  --bms-bg-footer: #333333;
+  --bms-bg-footer-dark: #222222;
+  --bms-bg-offer: #FFF8E1;
+  --bms-bg-premiere: #2B3148;
+
+  /* Text Colors */
+  --bms-text-primary: #333333;
+  --bms-text-dark: #222222;
+  --bms-text-secondary: #666666;
+  --bms-text-muted: #999999;
+  --bms-text-light: #F5F5F5;
+  --bms-text-white: #FFFFFF;
+  --bms-text-link: #DC3558;
+
+  /* Borders & Dividers */
+  --bms-border-light: #EEEEEE;
+  --bms-border-medium: #E0E0E0;
+  --bms-border-dark: #333338;
+  --bms-border-focus: #DC3558;
+
+  /* Semantic / Status */
+  --bms-success: #4ABD5D;
+  --bms-success-soft: rgba(74, 189, 93, 0.12);
+  --bms-warning: #F5A623;
+  --bms-warning-soft: rgba(245, 166, 35, 0.12);
+  --bms-danger: #DC3558;
+  --bms-danger-soft: rgba(220, 53, 88, 0.12);
+  --bms-info: #2B85EB;
+  --bms-sold: #E0E0E0;
+  --bms-selected: #1EA83C;
 
   /* Typography */
-  --cs-font-sans: "Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --cs-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --bms-font-primary: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --bms-font-sans: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --bms-font-mono: 'SF Mono', Consolas, monospace;
 
-  /* Component Properties */
-  --cs-radius-control: 10px;
-  --cs-radius-card: 16px;
-  --cs-radius-modal: 20px;
+  /* Elevation & Shadows */
+  --bms-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --bms-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --bms-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --bms-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* Radius */
+  --bms-radius-sm: 4px;
+  --bms-radius-md: 8px;
+  --bms-radius-lg: 12px;
+  --bms-radius-xl: 16px;
+  --bms-radius-pill: 9999px;
+
+  /* Transitions */
+  --bms-transition-fast: 150ms ease;
+  --bms-transition-normal: 200ms ease;
+
+  /* ==========================================================================
+     Mapping to Legacy Tokens (--cb-* and --cs-*)
+     This ensures ALL existing components effortlessly transition to BMS look
+     ========================================================================== */
+  --cb-canvas-void: var(--bms-bg-page);
+  --cb-canvas-vignette: none;
+  --cb-surface-card: var(--bms-bg-white);
+  --cb-surface-raised: #FFFFFF;
+  --cb-surface-highlight: #F9F9FB;
+  --cb-border-subtle: var(--bms-border-light);
+  --cb-border-focus: var(--bms-brand-red);
+  --cb-accent-yellow: var(--bms-brand-red);
+  --cb-accent-yellow-hover: var(--bms-brand-red-hover);
+  --cb-accent-yellow-active: var(--bms-brand-red-active);
+  --cb-accent-crimson: var(--bms-brand-red);
+  --cb-accent-crimson-soft: var(--bms-brand-red-soft);
+  --cb-text-primary: var(--bms-text-primary);
+  --cb-text-muted: var(--bms-text-secondary);
+  --cb-text-dim: var(--bms-text-muted);
+  --cb-font-display: var(--bms-font-primary);
+  --cb-font-body: var(--bms-font-primary);
+  --cb-font-mono: var(--bms-font-mono);
+  --cb-card-shadow: var(--bms-shadow-sm);
+  --cb-glow-yellow: 0 0 16px rgba(220, 53, 88, 0.25);
+
+  --cs-outer-canvas: var(--bms-bg-page);
+  --cs-canvas: var(--bms-bg-white);
+  --cs-surface: var(--bms-bg-white);
+  --cs-surface-raised: var(--bms-bg-white);
+  --cs-surface-muted: var(--bms-bg-secondary);
+  --cs-border: var(--bms-border-light);
+  --cs-text-primary: var(--bms-text-primary);
+  --cs-text-secondary: var(--bms-text-secondary);
+  --cs-text-disabled: var(--bms-text-muted);
+  --cs-text-on-accent: #FFFFFF;
+  --cs-accent: var(--bms-brand-red);
+  --cs-accent-hover: var(--bms-brand-red-hover);
+  --cs-accent-active: var(--bms-brand-red-active);
+  --cs-accent-soft: var(--bms-brand-red-soft);
+  --cs-action-primary: var(--bms-brand-red);
+  --cs-action-hover: var(--bms-brand-red-hover);
+  --cs-action-active: var(--bms-brand-red-active);
+  --cs-text-on-action: #FFFFFF;
+  --cs-success: var(--bms-success);
+  --cs-success-soft: var(--bms-success-soft);
+  --cs-warning: var(--bms-warning);
+  --cs-warning-soft: var(--bms-warning-soft);
+  --cs-danger: var(--bms-danger);
+  --cs-danger-soft: var(--bms-danger-soft);
+  --cs-info: var(--bms-info);
+  --cs-focus-ring: var(--bms-brand-red);
+  --cs-shadow: var(--bms-shadow-md);
+  --cs-font-sans: var(--bms-font-primary);
+  --cs-font-mono: var(--bms-font-mono);
+
+  --cs-radius-control: 8px;
+  --cs-radius-card: 8px;
+  --cs-radius-modal: 12px;
   --cs-space-1: 4px;
   --cs-space-2: 8px;
   --cs-space-3: 12px;
@@ -46,47 +138,18 @@
   --cs-space-8: 32px;
   --cs-transition-fast: 150ms ease;
 
-  /* Bootstrap Mapping */
-  --bs-body-bg: var(--cs-canvas);
-  --bs-body-color: var(--cs-text-primary);
-  --bs-primary: var(--cs-action-primary);
-  --bs-success: var(--cs-success);
-  --bs-warning: var(--cs-warning);
-  --bs-danger: var(--cs-danger);
-  --bs-border-color: var(--cs-border);
-  --bs-link-color: var(--cs-accent);
-  --bs-link-hover-color: var(--cs-accent-hover);
-  --bs-font-sans-serif: var(--cs-font-sans);
-}
-
-[data-theme="dark"] {
-  --cs-outer-canvas: #0A0A0A;
-  --cs-canvas: #181818;
-  --cs-surface: #232323;
-  --cs-surface-raised: #2B2B2B;
-  --cs-surface-muted: #292929;
-  --cs-border: #383838;
-  --cs-text-primary: #F7F7F7;
-  --cs-text-secondary: #C5C1C9;
-  --cs-text-disabled: #79757D;
-  --cs-text-on-accent: #111111;
-  --cs-accent: #CEC9EA;
-  --cs-accent-hover: #DED9F0;
-  --cs-accent-active: #BEB9DA;
-  --cs-accent-soft: #332F3A;
-  --cs-action-primary: #F7F7F7;
-  --cs-action-hover: #FFFFFF;
-  --cs-action-active: #E7E7E7;
-  --cs-text-on-action: #111111;
-  --cs-success: #54b98a;
-  --cs-success-soft: #1f3d31;
-  --cs-warning: #e3a03d;
-  --cs-warning-soft: #493515;
-  --cs-danger: #ef6c7a;
-  --cs-danger-soft: #4a252c;
-  --cs-info: #67b7e8;
-  --cs-focus-ring: #CEC9EA;
-  --cs-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  /* Bootstrap Variable Overrides */
+  --bs-body-bg: var(--bms-bg-page);
+  --bs-body-color: var(--bms-text-primary);
+  --bs-primary: var(--bms-brand-red);
+  --bs-primary-rgb: 220, 53, 88;
+  --bs-success: var(--bms-success);
+  --bs-warning: var(--bms-warning);
+  --bs-danger: var(--bms-brand-red);
+  --bs-border-color: var(--bms-border-light);
+  --bs-link-color: var(--bms-brand-red);
+  --bs-link-hover-color: var(--bms-brand-red-hover);
+  --bs-font-sans-serif: var(--bms-font-primary);
 }
 
 * {
@@ -96,231 +159,306 @@
 }
 
 body {
-  font-family: var(--cs-font-sans);
+  font-family: var(--bms-font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--cs-outer-canvas);
-  color: var(--cs-text-primary);
+  background-color: var(--bms-bg-page);
+  color: var(--bms-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* FilmTIX Structural Classes */
+/* ==========================================================================
+   BookMyShow Core Components & Helpers
+   ========================================================================== */
+
+/* Main Page Container (BookMyShow uses 1240px centered width) */
+.bms-container,
 .cs-workspace-wrapper {
-  background-color: var(--cs-canvas);
-  min-height: 100vh;
-  max-width: 1440px;
+  max-width: 1240px;
   margin: 0 auto;
-  border-radius: 28px;
-  padding: 24px;
-  box-shadow: 0 0 40px rgba(0,0,0,0.5);
-  overflow: hidden;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 @media (max-width: 768px) {
+  .bms-container,
   .cs-workspace-wrapper {
-    padding: 16px;
-    border-radius: 0;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 
-/* FilmTIX Utility Classes */
-.cs-focusable:focus-visible {
-  outline: 3px solid var(--cs-focus-ring);
-  outline-offset: 3px;
-  border-radius: inherit;
-}
-
+/* BookMyShow Brand Buttons */
+.bms-btn-primary,
+.cb-btn-primary,
 .cs-button-primary {
-  min-height: 44px;
-  border: 1px solid var(--cs-action-primary);
-  border-radius: var(--cs-radius-control);
-  background: var(--cs-action-primary);
-  color: var(--cs-text-on-action);
-  font: 700 14px/20px var(--cs-font-sans);
-  padding: 12px 16px;
-  transition: transform var(--cs-transition-fast), background var(--cs-transition-fast);
-  text-align: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--cs-space-2);
-  text-decoration: none;
+  gap: 8px;
+  background-color: var(--bms-brand-red);
+  color: #FFFFFF !important;
+  font-family: var(--bms-font-primary);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: var(--bms-radius-md);
+  border: none;
   cursor: pointer;
+  text-decoration: none;
+  transition: background-color var(--bms-transition-fast), transform var(--bms-transition-fast), box-shadow var(--bms-transition-fast);
 }
 
+.bms-btn-primary:hover,
+.cb-btn-primary:hover,
 .cs-button-primary:hover {
-  background: var(--cs-action-hover);
-  color: var(--cs-text-on-action);
+  background-color: var(--bms-brand-red-hover);
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(220, 53, 88, 0.25);
 }
 
+.bms-btn-primary:active,
+.cb-btn-primary:active,
 .cs-button-primary:active {
-  background: var(--cs-action-active);
+  background-color: var(--bms-brand-red-active);
   transform: translateY(1px);
 }
 
-.cs-button-primary:disabled {
-  background: var(--cs-surface-muted);
-  border-color: var(--cs-border);
-  color: var(--cs-text-disabled);
-  cursor: not-allowed;
-  transform: none;
-}
-
+.bms-btn-secondary,
+.cb-btn-secondary,
 .cs-button-secondary {
-  min-height: 44px;
-  border: 1px solid var(--cs-accent);
-  border-radius: var(--cs-radius-control);
-  background: var(--cs-accent);
-  color: var(--cs-text-on-accent);
-  font: 700 14px/20px var(--cs-font-sans);
-  padding: 12px 16px;
-  transition: transform var(--cs-transition-fast), background var(--cs-transition-fast);
-  text-align: center;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--cs-space-2);
-  text-decoration: none;
+  gap: 8px;
+  background-color: #FFFFFF;
+  color: var(--bms-text-primary) !important;
+  font-family: var(--bms-font-primary);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: var(--bms-radius-md);
+  border: 1px solid var(--bms-border-medium);
   cursor: pointer;
+  text-decoration: none;
+  transition: all var(--bms-transition-fast);
 }
 
+.bms-btn-secondary:hover,
+.cb-btn-secondary:hover,
 .cs-button-secondary:hover {
-  background: var(--cs-accent-hover);
-  color: var(--cs-text-on-accent);
+  border-color: var(--bms-brand-red);
+  color: var(--bms-brand-red) !important;
 }
 
+/* BookMyShow Card Pattern */
+.bms-card,
+.cb-glass-card,
 .cs-panel {
-  background: var(--cs-surface);
-  border: 1px solid var(--cs-border);
-  border-radius: var(--cs-radius-card);
+  background: var(--bms-bg-card);
+  border: 1px solid var(--bms-border-light);
+  border-radius: var(--bms-radius-md);
+  box-shadow: var(--bms-shadow-sm);
+  transition: transform var(--bms-transition-fast), box-shadow var(--bms-transition-fast);
 }
 
-/* Movie Card Overrides */
-.movie-card {
-  border-radius: var(--cs-radius-card);
+.bms-card:hover,
+.cb-glass-card:hover,
+.cs-panel:hover {
+  box-shadow: var(--bms-shadow-md);
+}
+
+/* Glass helper override for BMS (clean solid/frosted white) */
+.cb-glass {
+  background: #FFFFFF;
+  border: 1px solid var(--bms-border-light);
+  box-shadow: var(--bms-shadow-sm);
+}
+
+/* BookMyShow Section Titles */
+.bms-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.bms-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--bms-text-dark);
+  letter-spacing: -0.2px;
+}
+
+.bms-see-all {
+  color: var(--bms-brand-red);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color var(--bms-transition-fast);
+}
+
+.bms-see-all:hover {
+  color: var(--bms-brand-red-hover);
+  text-decoration: underline;
+}
+
+/* BookMyShow Chips / Pills */
+.bms-chip,
+.cb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--bms-radius-pill);
+  border: 1px solid var(--bms-border-medium);
+  background: #FFFFFF;
+  color: var(--bms-text-secondary);
+}
+
+.cb-badge-yellow {
+  background: var(--bms-warning-soft);
+  color: #B45309;
+  border-color: rgba(245, 166, 35, 0.3);
+}
+
+.cb-badge-crimson {
+  background: var(--bms-brand-red-soft);
+  color: var(--bms-brand-red);
+  border-color: rgba(220, 53, 88, 0.3);
+}
+
+/* Movie Card Hover */
+.movie-card,
+.card-hover {
+  border-radius: var(--bms-radius-md);
+  background: #FFFFFF;
+  border: 1px solid var(--bms-border-light);
+  box-shadow: var(--bms-shadow-sm);
+  transition: transform var(--bms-transition-fast), box-shadow var(--bms-transition-fast);
   overflow: hidden;
-  background: var(--cs-surface);
-  border: 1px solid var(--cs-border);
-  transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition-fast);
 }
 
-.movie-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--cs-shadow);
+.movie-card:hover,
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--bms-shadow-lg);
 }
 
-/* Form inputs */
-.form-control, .form-select {
-  border-radius: var(--cs-radius-control);
-  border: 1px solid var(--cs-border);
-  background-color: var(--cs-surface);
-  min-height: 44px;
-  color: var(--cs-text-primary);
+/* Forms & Inputs */
+.form-control,
+.form-select {
+  border-radius: var(--bms-radius-md);
+  border: 1px solid var(--bms-border-medium);
+  background-color: #FFFFFF;
+  color: var(--bms-text-primary);
+  font-size: 14px;
+  padding: 10px 14px;
+  transition: border-color var(--bms-transition-fast), box-shadow var(--bms-transition-fast);
 }
 
-.form-control:focus, .form-select:focus {
-  border-color: var(--cs-accent);
-  box-shadow: 0 0 0 3px var(--cs-focus-ring);
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bms-brand-red);
+  box-shadow: 0 0 0 3px rgba(220, 53, 88, 0.15);
+  outline: none;
 }
 
-/* Custom scrollbar */
+/* Offers Card (Warm cream/yellow background from BMS Screenshots 15 & 16) */
+.bms-offer-card {
+  background-color: var(--bms-bg-offer);
+  border: 1px dashed #F5A623;
+  border-radius: var(--bms-radius-md);
+  padding: 14px 16px;
+}
+
+/* Showtime Chip (Screenshot 21) */
+.bms-showtime-chip {
+  min-width: 110px;
+  padding: 8px 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--bms-success);
+  border-radius: var(--bms-radius-sm);
+  color: var(--bms-success);
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--bms-transition-fast);
+}
+
+.bms-showtime-chip:hover {
+  background-color: var(--bms-success-soft);
+  transform: translateY(-1px);
+}
+
+.bms-showtime-chip.fast-filling {
+  border-color: var(--bms-warning);
+  color: #D97706;
+}
+
+.bms-showtime-chip.fast-filling:hover {
+  background-color: var(--bms-warning-soft);
+}
+
+/* Seat Map Indicators */
+.bms-seat-available {
+  background: #FFFFFF;
+  border: 1px solid var(--bms-success);
+  color: var(--bms-success);
+}
+
+.bms-seat-selected {
+  background: var(--bms-selected) !important;
+  border-color: var(--bms-selected) !important;
+  color: #FFFFFF !important;
+}
+
+.bms-seat-sold {
+  background: var(--bms-sold) !important;
+  border-color: var(--bms-sold) !important;
+  color: #999999 !important;
+  cursor: not-allowed;
+}
+
+.bms-seat-bestseller {
+  border-color: var(--bms-warning);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--cs-outer-canvas);
+  background: #F1F1F1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #C1C1C1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #A8A8A8;
 }
 
-/* Smooth transitions for links */
-a {
-  transition: color var(--cs-transition-fast);
-}
-
-/* Dashboard Motion Classes */
-.hover-nav-item:hover {
-  background-color: var(--cs-surface-muted);
-  color: var(--cs-text-primary) !important;
-}
-
-.hover-bg-light:hover {
-  background-color: var(--cs-surface-muted);
-}
-
-.hover-opacity-100 {
-  transition: opacity 150ms ease;
-}
-
-.hover-opacity-100:hover {
-  opacity: 1 !important;
-}
-
-/* Reduced motion preference */
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-/* Typography styles */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--cs-text-primary);
-  font-weight: 700;
-}
-
-.text-muted {
-  color: var(--cs-text-secondary) !important;
-}
-
-/* Print Stylesheet */
-@media print {
-  /* Hide unnecessary elements */
-  .no-print,
-  .navbar,
-  .cs-workspace-wrapper > nav,
-  header,
-  footer {
-    display: none !important;
-  }
-
-  /* Force white paper and black text */
-  body, html, .cs-workspace-wrapper, .cs-panel {
-    background: white !important;
-    color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-
-  /* Specific ticket styles for printing */
-  #printable-ticket, .printable-ticket {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    page-break-inside: avoid !important;
-    border: 1px solid #000 !important;
-  }
-  
-  /* Ensure colors print for the separator and barcode */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 }

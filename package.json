@@ -1,0 +1,25 @@
+{
+  "name": "cinebook-movie-ticket-booking",
+  "version": "1.0.0",
+  "description": "CineBook — Movie Tickets & IMAX Experience Platform",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js",
+    "dev": "node run.js",
+    "dev:server": "cd server && node server.js",
+    "dev:client": "cd client && npx vite --port 5173",
+    "seed": "cd server && node seed.js",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "movie",
+    "booking",
+    "cinema",
+    "imax",
+    "react",
+    "vite",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC"
+}

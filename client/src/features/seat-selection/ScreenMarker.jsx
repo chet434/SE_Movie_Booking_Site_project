@@ -1,20 +1,27 @@
-import React from 'react';
-
 const ScreenMarker = () => {
   return (
-    <div className="d-flex flex-column align-items-center mb-5" aria-hidden="true">
-      <div 
+    <div className="w-100 d-flex flex-column align-items-center my-4" aria-hidden="true">
+      {/* BMS Curved Screen Arch (Screenshot 23: All eyes this way please) */}
+      <div
         style={{
-          width: '80%',
-          maxWidth: '400px',
-          height: '16px',
-          borderTopLeftRadius: '50% 100%',
-          borderTopRightRadius: '50% 100%',
-          backgroundColor: 'var(--cs-accent-soft)',
-          borderTop: '2px solid var(--cs-accent)'
+          width: '70%',
+          maxWidth: '420px',
+          height: '4px',
+          backgroundColor: '#009688',
+          borderRadius: '2px',
+          boxShadow: '0 2px 8px rgba(0, 150, 136, 0.4)'
         }}
       />
-      <span className="text-muted small fw-bold mt-2" style={{ letterSpacing: '2px' }}>SCREEN THIS WAY</span>
+      <span
+        className="mt-2 text-uppercase fw-semibold"
+        style={{
+          fontSize: '10px',
+          color: '#888888',
+          letterSpacing: '2px'
+        }}
+      >
+        All eyes this way please!
+      </span>
     </div>
   );
 };

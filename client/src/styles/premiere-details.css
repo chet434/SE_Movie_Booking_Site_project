@@ -1,0 +1,568 @@
+/* ==========================================================================
+   CineBook Premiere / Streaming Movie Details Page Styles
+   ========================================================================== */
+
+:root {
+  --cb-prem-dark-bg: #1A1A1A;
+  --cb-prem-brand-red: #E53955;
+  --cb-prem-brand-red-hover: #C41230;
+  --cb-prem-navy-pill: #2B3148;
+  --cb-prem-pill-subtle: #2A2F42;
+  --cb-prem-link-crimson: #F04862;
+  --cb-prem-body-bg: #FFFFFF;
+  --cb-prem-text-primary: #111111;
+  --cb-prem-text-muted: #666666;
+}
+
+/* Base Wrapper */
+.cb-premiere-page {
+  background-color: var(--cb-prem-body-bg);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--cb-prem-text-primary);
+}
+
+/* ==========================================================================
+   1. FULL-WIDTH DARK HERO SECTION
+   ========================================================================== */
+.cb-premiere-hero {
+  position: relative;
+  background-color: var(--cb-prem-dark-bg);
+  min-height: 480px;
+  overflow: hidden;
+  color: #FFFFFF;
+}
+
+/* Backdrop Layer (Positioned on the right half) */
+.cb-premiere-backdrop-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 65%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cb-premiere-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Multi-Stop Dark Gradient Fade Overlay */
+.cb-premiere-gradient-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background: 
+    linear-gradient(
+      to right,
+      #1A1A1A 0%,
+      #1A1A1A 40%,
+      rgba(26, 26, 26, 0.82) 55%,
+      rgba(26, 26, 26, 0.25) 75%,
+      rgba(26, 26, 26, 0.7) 92%,
+      #1A1A1A 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 65%,
+      rgba(26, 26, 26, 0.95) 95%,
+      #1A1A1A 100%
+    );
+}
+
+/* Center Container */
+.cb-premiere-hero-inner {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  z-index: 3;
+}
+
+/* Top-Right Floating Share Button */
+.cb-premiere-share-btn {
+  position: absolute;
+  top: 36px;
+  right: 16px;
+  background: rgba(34, 34, 34, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 10px 18px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.cb-premiere-share-btn:hover {
+  background: rgba(55, 55, 55, 0.92);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.cb-premiere-share-btn.copied {
+  background: #149D4F;
+  border-color: #149D4F;
+  color: #FFFFFF;
+}
+
+/* Two-Column Content Grid */
+.cb-premiere-hero-grid {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Left Column: Vertical Poster Card */
+.cb-premiere-poster-card {
+  width: 260px;
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
+  background: #121212;
+}
+
+.cb-premiere-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlaid Trailer Button */
+.cb-premiere-trailer-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cb-premiere-trailer-btn:hover {
+  background: rgba(229, 57, 85, 0.9);
+  border-color: rgba(229, 57, 85, 0.9);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+/* Right Column: Details & Actions */
+.cb-premiere-details-col {
+  flex: 1;
+  max-width: 820px;
+}
+
+/* Status Pills Row */
+.cb-premiere-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cb-premiere-status-pill {
+  background: var(--cb-prem-navy-pill);
+  border-radius: 999px;
+  padding: 4px 12px 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cb-premiere-icon-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cb-prem-brand-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+}
+
+.cb-premiere-pill-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+}
+
+.cb-premiere-subtle-pill {
+  background: var(--cb-prem-pill-subtle);
+  color: #E0E4F0;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Title */
+.cb-premiere-title {
+  font-size: 38px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+/* Metadata Line 1 */
+.cb-premiere-meta-line-1 {
+  font-size: 15px;
+  color: #FFFFFF;
+  margin-bottom: 10px;
+  font-weight: 400;
+}
+
+.cb-premiere-meta-line-1 .sep {
+  margin: 0 6px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* Metadata Line 2 */
+.cb-premiere-meta-line-2 {
+  font-size: 14px;
+  color: #CCCCCC;
+  margin-bottom: 28px;
+}
+
+.cb-premiere-lang-trigger {
+  color: var(--cb-prem-link-crimson);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.cb-premiere-lang-trigger:hover {
+  color: #FF7088;
+  text-decoration: underline;
+}
+
+/* Primary CTA Buttons Row */
+.cb-premiere-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.cb-premiere-btn-primary {
+  background-color: var(--cb-prem-brand-red);
+  color: #FFFFFF;
+  height: 48px;
+  min-width: 195px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(229, 57, 85, 0.35);
+  transition: all 0.2s ease;
+}
+
+.cb-premiere-btn-primary:hover {
+  background-color: var(--cb-prem-brand-red-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(229, 57, 85, 0.45);
+}
+
+.cb-premiere-btn-watch {
+  background-color: #149D4F;
+  color: #FFFFFF;
+  height: 48px;
+  min-width: 210px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(20, 157, 79, 0.35);
+  transition: all 0.2s ease;
+}
+
+.cb-premiere-btn-watch:hover {
+  background-color: #0F7E3E;
+  transform: translateY(-1px);
+}
+
+.cb-premiere-unlocked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(20, 157, 79, 0.18);
+  border: 1px solid rgba(20, 157, 79, 0.5);
+  color: #4ADE80;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   2. LIGHT CONTENT BODY: ABOUT, CAST & CREW
+   ========================================================================= */
+.cb-premiere-body {
+  background-color: #FFFFFF;
+  padding: 40px 0 72px;
+}
+
+.cb-premiere-body-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.cb-premiere-body-col {
+  max-width: 820px;
+}
+
+.cb-premiere-section-heading {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111111;
+  margin-bottom: 14px;
+}
+
+.cb-premiere-description-text {
+  font-size: 15px;
+  color: #333333;
+  line-height: 1.68;
+  margin-bottom: 0;
+}
+
+/* Cast & Crew Grid */
+.cb-premiere-people-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 18px;
+}
+
+.cb-premiere-person-card {
+  width: 112px;
+  text-align: left;
+}
+
+/* Rounded-Square Image Frame (112px x 112px) */
+.cb-premiere-avatar-frame {
+  width: 112px;
+  height: 112px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #2A2F42 0%, #171A26 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.cb-premiere-avatar-initials {
+  font-size: 22px;
+  font-weight: 700;
+  color: #E2E8F0;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+.cb-premiere-person-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111111;
+  line-height: 1.3;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.cb-premiere-person-role {
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.25;
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   3. MODALS & OVERLAYS
+   ========================================================================== */
+.cb-premiere-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1070;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cbFadeIn 0.2s ease;
+}
+
+.cb-premiere-modal-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+  animation: cbSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cb-premiere-modal-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #EEEEEE;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cb-premiere-modal-body {
+  padding: 20px;
+}
+
+.cb-premiere-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #EEEEEE;
+  background: #FAFAFA;
+}
+
+/* Video Player Modal */
+.cb-premiere-video-modal-card {
+  background: #000000;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+}
+
+.cb-premiere-video-box {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000000;
+  position: relative;
+}
+
+.cb-premiere-video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Keyframes */
+@keyframes cbFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cbSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   4. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 992px) {
+  .cb-premiere-backdrop-layer {
+    width: 80%;
+    opacity: 0.85;
+  }
+  .cb-premiere-title {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cb-premiere-hero {
+    min-height: auto;
+  }
+  .cb-premiere-backdrop-layer {
+    width: 100%;
+    height: 300px;
+    opacity: 0.55;
+  }
+  .cb-premiere-gradient-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(26, 26, 26, 0.4) 0%,
+      rgba(26, 26, 26, 0.95) 45%,
+      #1A1A1A 85%
+    );
+  }
+  .cb-premiere-hero-grid {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .cb-premiere-poster-card {
+    width: 180px;
+    margin: 0 auto;
+  }
+  .cb-premiere-share-btn {
+    top: 20px;
+    right: 16px;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .cb-premiere-title {
+    font-size: 26px;
+    text-align: left;
+  }
+  .cb-premiere-btn-primary,
+  .cb-premiere-btn-watch {
+    width: 100%;
+    min-width: 100%;
+  }
+  .cb-premiere-people-row {
+    gap: 16px;
+  }
+}

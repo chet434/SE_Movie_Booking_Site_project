@@ -1,10 +1,14 @@
-import { FaFilter, FaTimes } from 'react-icons/fa';
+import { Icon } from './ui';
 
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Adventure'];
 const LANGUAGES = ['English', 'Hindi', 'Telugu', 'Tamil', 'Kannada', 'Malayalam'];
 
 const FilterPanel = ({ filters, setFilters, locations }) => {
   const hasFilters = filters.genre || filters.language || filters.location;
+
+  const locationNames = Array.isArray(locations)
+    ? locations.map((loc) => (typeof loc === 'string' ? loc : loc.name))
+    : [];
 
   const clearFilters = () => {
     setFilters({ genre: '', language: '', location: '' });
@@ -14,10 +18,10 @@ const FilterPanel = ({ filters, setFilters, locations }) => {
     <div className="cs-panel mb-4">
       <div className="p-3">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="fw-bold mb-0 d-flex align-items-center"><FaFilter className="me-2" style={{ color: 'var(--cs-accent-active)' }} />Filters</h6>
+          <h6 className="fw-bold mb-0 d-flex align-items-center" style={{ color: 'var(--cs-text-primary)' }}><Icon name="icon-filter" className="me-2" size={18} style={{ color: 'var(--cs-accent)' }} />Filters</h6>
           {hasFilters && (
             <button className="btn btn-sm d-flex align-items-center gap-1" onClick={clearFilters} style={{ background: 'transparent', color: 'var(--cs-text-primary)' }}>
-              <FaTimes size={12} /> Clear
+              <Icon name="icon-x" size={12} /> Clear
             </button>
           )}
         </div>
@@ -26,8 +30,8 @@ const FilterPanel = ({ filters, setFilters, locations }) => {
             <select className="form-select form-select-sm" value={filters.location}
               onChange={(e) => setFilters({ ...filters, location: e.target.value })}>
               <option value="">All Locations</option>
-              {locations.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
+              {locationNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
               ))}
             </select>
           </div>

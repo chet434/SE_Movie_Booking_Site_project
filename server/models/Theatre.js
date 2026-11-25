@@ -25,18 +25,30 @@ const theatreSchema = new mongoose.Schema({
     required: [true, 'Theatre name is required'],
     trim: true
   },
-  location: {
+  location: { // Legacy field, kept for backward compatibility
     type: String,
-    required: [true, 'Location/city is required'],
     trim: true
   },
+  city: { // New field
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'City'
+  },
   address: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed, // Change to Mixed so it accepts both string and new object structure
     required: [true, 'Address is required']
   },
-  screens: [screenSchema]
+  coordinates: { // New field
+    type: { type: String, enum: ['Point'] },
+    coordinates: { type: [Number], default: undefined }
+  },
+  amenities: [{ type: String }], // New field
+  screens: [screenSchema], // Legacy embedded screens
+  isActive: { type: Boolean, default: true } // New field
 }, {
   timestamps: true
 });
+
+theatreSchema.index({ city: 1, isActive: 1 });
+theatreSchema.index({ coordinates: '2dsphere' });
 
 module.exports = mongoose.model('Theatre', theatreSchema);

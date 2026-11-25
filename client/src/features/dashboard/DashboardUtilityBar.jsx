@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import LocationModal from '../../components/LocationModal';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLocationContext } from '../../context/LocationContext';
+import { getLocations } from '../../services/api';
 import { 
   IconSearch, 
   IconMapPin, 
@@ -10,34 +13,62 @@ import {
 } from '@tabler/icons-react';
 
 const GlobalSearch = () => (
-  <div className="position-relative d-none d-md-block" style={{ width: '320px' }}>
-    <div className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
-      <IconSearch size={18} stroke={2} />
+  <div className="position-relative d-none d-md-block" style={{ width: '400px', transition: 'all 0.3s ease' }}>
+    <div className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style={{ zIndex: 10 }}>
+      <IconSearch size={18} stroke={2} style={{ color: 'var(--cs-accent)' }} />
     </div>
     <input 
       type="text" 
-      className="form-control cs-focusable border-0 shadow-none ps-5 fw-semibold" 
+      className="form-control fw-semibold" 
       placeholder="Search movies, theatres..."
       style={{ 
-        backgroundColor: 'var(--cs-surface)', 
+        backgroundColor: 'rgba(0,0,0,0.2)', 
+        border: '2px solid var(--cs-accent)',
         borderRadius: '24px',
-        height: '44px'
+        height: '48px',
+        paddingLeft: '45px',
+        color: 'var(--cs-text-primary)',
+        boxShadow: '0 0 15px rgba(255,100,100, 0.2)',
+        transition: 'all 0.3s ease'
+      }}
+      onFocus={(e) => {
+        e.target.style.boxShadow = '0 0 25px rgba(255,100,100, 0.5)';
+        e.target.style.transform = 'scale(1.02)';
+        e.target.style.backgroundColor = 'var(--cs-surface)';
+      }}
+      onBlur={(e) => {
+        e.target.style.boxShadow = '0 0 15px rgba(255,100,100, 0.2)';
+        e.target.style.transform = 'scale(1)';
+        e.target.style.backgroundColor = 'rgba(0,0,0,0.2)';
       }}
       aria-label="Global search"
     />
   </div>
 );
 
-const LocationMenu = () => (
-  <button 
-    className="btn d-flex align-items-center gap-2 cs-focusable border-0 fw-bold"
-    style={{ backgroundColor: 'transparent', color: 'var(--cs-text-primary)' }}
-    aria-label="Select location"
-  >
-    <IconMapPin size={20} stroke={2} style={{ color: 'var(--cs-accent)' }} />
-    <span className="d-none d-sm-inline">Mumbai</span>
-  </button>
-);
+const LocationMenu = () => {
+  const { selectedLocation } = useLocationContext();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  return (
+    <>
+      <button 
+        className="btn d-flex align-items-center gap-2 cs-focusable border-0 fw-bold"
+        style={{ backgroundColor: 'transparent', color: 'var(--cs-text-primary)' }}
+        aria-label="Select location"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <IconMapPin size={20} stroke={2} style={{ color: 'var(--cs-accent)' }} />
+        <span className="d-none d-sm-inline">{selectedLocation}</span>
+      </button>
+      
+      <LocationModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+    </>
+  );
+};
 
 const NotificationButton = () => (
   <button 

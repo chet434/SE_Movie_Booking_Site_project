@@ -1,0 +1,531 @@
+/* ==========================================================================
+   BookMyShow Exact City Picker & GPS Location Detector Modal Styling
+   ========================================================================== */
+
+/* Modal Backdrop */
+.cb-loc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1070;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px;
+  overflow-y: auto;
+  animation: cbLocFadeIn 0.2s ease-out;
+}
+
+@keyframes cbLocFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Card */
+.cb-loc-modal-card {
+  width: 94vw;
+  max-width: 960px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  margin-top: 72px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: cbLocScaleIn 0.2s ease-out;
+}
+
+@keyframes cbLocScaleIn {
+  from {
+    transform: scale(0.97) translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Search Bar Row */
+.cb-loc-search-row {
+  padding: 18px 24px 0;
+  position: relative;
+}
+
+.cb-loc-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.cb-loc-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666666;
+  pointer-events: none;
+}
+
+.cb-loc-search-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #DFDFDF;
+  border-radius: 4px;
+  padding: 0 14px 0 42px;
+  font-size: 14px;
+  color: #222222;
+  background-color: #FFFFFF;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cb-loc-search-input:focus {
+  border-color: #DC3558;
+  box-shadow: 0 0 0 2px rgba(220, 53, 88, 0.12);
+}
+
+.cb-loc-search-input::placeholder {
+  color: #888888;
+}
+
+/* Search Results Dropdown List */
+.cb-loc-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1080;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cb-loc-search-item {
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 13.5px;
+  color: #333333;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.cb-loc-search-item:last-child {
+  border-bottom: none;
+}
+
+.cb-loc-search-item:hover {
+  background-color: #FFF2F4;
+  color: #DC3558;
+}
+
+.cb-loc-search-item-badge {
+  font-size: 11px;
+  background-color: #F3F4F6;
+  color: #666666;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Detect My Location Bar */
+.cb-loc-detect-bar {
+  padding: 14px 24px;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.cb-loc-detect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #DC3558;
+  font-size: 14px;
+  font-weight: 400;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.cb-loc-detect-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.cb-loc-detect-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* Popular Cities Section */
+.cb-loc-popular-section {
+  padding: 18px 24px 12px;
+}
+
+.cb-loc-section-title {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  margin: 0 0 18px 0;
+}
+
+/* 10-Column Desktop Grid */
+.cb-loc-cities-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .cb-loc-cities-grid {
+    grid-template-columns: repeat(5, 1fr);
+    row-gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .cb-loc-cities-grid {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 14px;
+  }
+}
+
+.cb-loc-city-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  padding: 6px 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.cb-loc-city-item:hover {
+  background-color: #F8F9FA;
+}
+
+.cb-loc-city-icon-wrap {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3B404E;
+  margin-bottom: 6px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.cb-loc-city-item:hover .cb-loc-city-icon-wrap {
+  color: #111111;
+  transform: translateY(-2px);
+}
+
+.cb-loc-city-item.active .cb-loc-city-icon-wrap {
+  color: #111111;
+}
+
+.cb-loc-city-name {
+  font-size: 12.5px;
+  color: #666666;
+  margin: 0;
+  line-height: 1.25;
+  transition: color 0.15s ease, font-weight 0.15s ease;
+  white-space: nowrap;
+}
+
+.cb-loc-city-item:hover .cb-loc-city-name {
+  color: #111111;
+}
+
+.cb-loc-city-item.active .cb-loc-city-name {
+  color: #111111;
+  font-weight: 700;
+}
+
+/* Expandable Metro Sub-Regions Tray */
+.cb-loc-subregions-tray {
+  background-color: #F5F5F5;
+  border: 1px solid #EAEAEA;
+  border-radius: 6px;
+  padding: 12px 18px;
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  animation: cbLocFadeIn 0.2s ease-out;
+}
+
+.cb-loc-subregion-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 13px;
+  color: #333333;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+  font-family: inherit;
+  border-radius: 4px;
+}
+
+.cb-loc-subregion-btn:hover {
+  color: #DC3558;
+  transform: translateY(-1px);
+}
+
+.cb-loc-subregion-btn.active {
+  color: #DC3558;
+  font-weight: 700;
+}
+
+/* View All Cities Expandable Directory */
+.cb-loc-all-cities-toggle-wrap {
+  padding: 12px 24px 20px;
+  text-align: center;
+}
+
+.cb-loc-all-cities-toggle-btn {
+  background: none;
+  border: none;
+  color: #DC3558;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 16px;
+  transition: opacity 0.15s ease;
+}
+
+.cb-loc-all-cities-toggle-btn:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.cb-loc-other-cities-tray {
+  margin-top: 18px;
+  padding: 18px 24px 24px;
+  border-top: 1px solid #EEEEEE;
+  animation: cbLocFadeIn 0.2s ease-out;
+}
+
+.cb-loc-other-cities-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444444;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cb-loc-other-cities-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px 14px;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .cb-loc-other-cities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .cb-loc-other-cities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.cb-loc-other-city-link {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  text-align: left;
+  font-size: 12.5px;
+  color: #666666;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cb-loc-other-city-link:hover {
+  color: #DC3558;
+}
+
+.cb-loc-other-city-link.active {
+  color: #111111;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Nested "Oops!" Error Modal (Exact BookMyShow Dialog)
+   ========================================================================== */
+.cb-loc-oops-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(1.5px);
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cbLocFadeIn 0.15s ease-out;
+}
+
+.cb-loc-oops-card {
+  width: 340px;
+  max-width: 90vw;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: cbLocScaleIn 0.15s ease-out;
+}
+
+.cb-loc-oops-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0 0 14px 0;
+}
+
+.cb-loc-oops-msg {
+  font-size: 13.5px;
+  color: #555555;
+  line-height: 1.5;
+  margin: 0 0 22px 0;
+}
+
+.cb-loc-oops-btn {
+  background-color: #F84464;
+  color: #FFFFFF;
+  height: 40px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cb-loc-oops-btn:hover {
+  background-color: #DC354B;
+}
+
+/* Non-Intrusive Floating Toast */
+.cb-loc-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #222222;
+  color: #FFFFFF;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 1100;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: cbLocToastIn 0.25s ease-out;
+}
+
+@keyframes cbLocToastIn {
+  from {
+    transform: translate(-50%, 20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   Unavailable Location Popup Styling (Services Not Available Dialog)
+   ========================================================================== */
+.cb-loc-unavailable-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cbLocFadeIn 0.15s ease-out;
+}
+
+.cb-loc-unavailable-card {
+  width: 360px;
+  max-width: 90vw;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+  animation: cbLocScaleIn 0.15s ease-out;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cb-loc-unavailable-icon {
+  color: #F84464;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cb-loc-unavailable-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #222222;
+  margin: 0 0 10px 0;
+}
+
+.cb-loc-unavailable-msg {
+  font-size: 13.5px;
+  color: #555555;
+  line-height: 1.55;
+  margin: 0 0 22px 0;
+}
+
+.cb-loc-unavailable-btn {
+  background-color: #F84464;
+  color: #FFFFFF;
+  height: 42px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cb-loc-unavailable-btn:hover {
+  background-color: #DC354B;
+}
+

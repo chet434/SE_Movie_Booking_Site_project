@@ -3,29 +3,29 @@ import { IconMapPinFilled, IconCalendarFilled, IconClockFilled } from '@tabler/i
 
 const MovieContext = ({ theatre, date, showtime, format }) => {
   return (
-    <div className="d-flex flex-wrap gap-3 text-muted small fw-bold mb-4">
+    <div className="d-flex flex-wrap align-items-center gap-3 text-muted small fw-bold mb-4">
       <div className="d-flex align-items-center gap-1">
-        <IconMapPinFilled size={16} />
-        <span>{theatre}</span>
+        <IconMapPinFilled size={15} style={{ color: 'var(--cb-accent-yellow)' }} />
+        <span className="text-white-50">{theatre}</span>
       </div>
       <div className="d-flex align-items-center gap-1">
-        <IconCalendarFilled size={16} />
-        <span>
+        <IconCalendarFilled size={15} style={{ color: 'var(--cb-accent-yellow)' }} />
+        <span className="text-white-50">
           {new Date(date).toLocaleDateString('en-IN', {
+            weekday: 'short',
             day: 'numeric',
-            month: 'short',
-            year: 'numeric'
+            month: 'short'
           })}
         </span>
       </div>
       <div className="d-flex align-items-center gap-1">
-        <IconClockFilled size={16} />
-        <span>{showtime}</span>
+        <IconClockFilled size={15} style={{ color: 'var(--cb-accent-yellow)' }} />
+        <span className="text-white-50">{showtime}</span>
       </div>
       {format && (
-        <div className="d-flex align-items-center gap-1 px-2" style={{ backgroundColor: 'var(--cs-surface-muted)', borderRadius: '4px' }}>
-          <span>{format}</span>
-        </div>
+        <span className="cb-badge cb-badge-yellow" style={{ fontSize: '10px' }}>
+          {format}
+        </span>
       )}
     </div>
   );

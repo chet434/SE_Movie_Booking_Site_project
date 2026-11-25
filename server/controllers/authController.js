@@ -1,9 +1,17 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { getJwtConfig } = require('../config/security');
 
-// Generate JWT token
+// Generate JWT access token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  const config = getJwtConfig();
+  return jwt.sign({ id }, config.secret, { expiresIn: config.expiresIn });
+};
+
+// Generate JWT refresh token
+const generateRefreshToken = (id) => {
+  const config = getJwtConfig();
+  return jwt.sign({ id }, config.refreshSecret, { expiresIn: config.refreshExpiresIn });
 };
 
 // @desc    Register a new user
@@ -70,7 +78,8 @@ const register = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user._id),
+        refreshToken: generateRefreshToken(user._id)
       }
     });
   } catch (error) {
@@ -112,7 +121,8 @@ const login = async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user._id),
+        refreshToken: generateRefreshToken(user._id)
       }
     });
   } catch (error) {
@@ -232,4 +242,52 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, updateProfile, changePassword };
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh
+// @access  Public
+const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken: token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required.'
+      });
+    }
+
+    const config = getJwtConfig();
+    let decoded;
+    try {
+      decoded = jwt.verify(token, config.refreshSecret);
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired refresh token.'
+      });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user || user.isActive === false) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or inactive.'
+      });
+    }
+
+    const newAccessToken = generateToken(user._id);
+    res.json({
+      success: true,
+      data: {
+        token: newAccessToken
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+module.exports = { register, login, refreshToken, getProfile, updateProfile, changePassword };

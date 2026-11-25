@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMovies, addMovie, updateMovie, deleteMovie } from '../../services/api';
-import { FaPlus, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
+import { Icon } from '../../components/ui';
 
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Adventure'];
 
@@ -79,7 +79,7 @@ const ManageMovies = () => {
         <h3 className="fw-bold mb-0">Manage Movies</h3>
         <button className="btn btn-warning fw-bold"
           onClick={() => { setShowForm(!showForm); setEditing(null); setForm(emptyMovie); }}>
-          {showForm ? <><FaTimes className="me-1" />Close</> : <><FaPlus className="me-1" />Add Movie</>}
+          {showForm ? <><Icon name="icon-x" size={14} className="me-1" />Close</> : <><Icon name="icon-plus" size={14} className="me-1" />Add Movie</>}
         </button>
       </div>
 
@@ -188,7 +188,11 @@ const ManageMovies = () => {
                   <td>
                     <img src={movie.poster} alt={movie.title} className="rounded"
                       style={{ width: '40px', height: '60px', objectFit: 'cover' }}
-                      onError={(e) => { e.target.src = 'https://via.placeholder.com/40x60'; }} />
+                      onError={(e) => { 
+                        if (!e.target.src.includes('placehold.co')) {
+                          e.target.src = 'https://placehold.co/40x60?text=Poster'; 
+                        }
+                      }} />
                   </td>
                   <td className="fw-semibold">{movie.title}</td>
                   <td><small>{movie.genre?.join(', ')}</small></td>
@@ -201,10 +205,10 @@ const ManageMovies = () => {
                   </td>
                   <td>
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleEdit(movie)}>
-                      <FaEdit />
+                      <Icon name="icon-edit" size={14} />
                     </button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(movie._id)}>
-                      <FaTrash />
+                      <Icon name="icon-trash" size={14} />
                     </button>
                   </td>
                 </tr>

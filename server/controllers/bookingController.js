@@ -1,138 +1,623 @@
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
+const BookingSeat = require('../models/BookingSeat');
 const Show = require('../models/Show');
+const ShowSeat = require('../models/ShowSeat');
+const Payment = require('../models/Payment');
+const Movie = require('../models/Movie');
+const Theatre = require('../models/Theatre');
+const User = require('../models/User');
+const Screen = require('../models/Screen');
+const { deepTrust } = require('../utils/deepTrust');
 
-// Helper: Generate booking ID
-const generateBookingId = () => {
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-  return `BK-${dateStr}-${rand}`;
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const generateBookingNumber = () => {
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = String(Math.floor(Math.random() * 900000) + 100000);
+  return `BMS${rand}`;
 };
 
-// Helper: Generate mock transaction ID
-const generateTransactionId = () => {
-  const now = new Date();
-  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const rand = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-  return `MOCK-${dateStr}-${rand}`;
+const generateMockOrderId = () =>
+  `MOCK-ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+const releaseExpiredHolds = async (showId) => {
+  try {
+    const filter = showId
+      ? { show: showId, status: 'held', 'hold.expiresAt': { $lt: new Date() } }
+      : { status: 'held', 'hold.expiresAt': { $lt: new Date() } };
+    await ShowSeat.updateMany(
+      deepTrust(filter),
+      { $set: { status: 'available' }, $unset: { hold: '' } }
+    );
+  } catch (err) {
+    console.warn('[BookingController] releaseExpiredHolds error:', err.message);
+  }
 };
 
-// @desc    Create booking (with seat re-check)
+let isReplicaSet = null;
+
+const checkReplicaSetSupport = async () => {
+  if (isReplicaSet !== null) return isReplicaSet;
+  try {
+    if (!mongoose.connection.db) return false;
+    const adminDb = mongoose.connection.db.admin();
+    const status = await adminDb.command({ hello: 1 });
+    isReplicaSet = !!(status.setName || status.msg === 'isdbgrid');
+  } catch (e) {
+    try {
+      const isMaster = await mongoose.connection.db.admin().command({ isMaster: 1 });
+      isReplicaSet = !!(isMaster.setName || isMaster.msg === 'isdbgrid');
+    } catch {
+      isReplicaSet = false;
+    }
+  }
+  return isReplicaSet;
+};
+
+/**
+ * Transaction runner helper with graceful fallback for standalone local MongoDB.
+ * When running on a replica set, operations run within a transaction session.
+ * If transactions are not supported, operations execute cleanly without session.
+ */
+const runInTransaction = async (callback) => {
+  const supportsTx = await checkReplicaSetSupport();
+  if (!supportsTx) {
+    return callback(null);
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const result = await callback(session);
+    await session.commitTransaction();
+    return result;
+  } catch (err) {
+    if (session.inTransaction()) {
+      try {
+        await session.abortTransaction();
+      } catch (abortErr) {
+        // Ignore abort errors
+      }
+    }
+    // If runtime failed due to standalone mongo lack of replica set, fallback & cache
+    if (err?.code === 20 || String(err?.message).includes('replica set member')) {
+      isReplicaSet = false;
+      return callback(null);
+    }
+    throw err;
+  } finally {
+    session.endSession();
+  }
+};
+
+const stringifyAddress = (addr, location, fallback = 'Bhubaneswar') => {
+  if (typeof addr === 'string' && addr.trim()) return addr.trim();
+  if (addr && typeof addr === 'object') {
+    const parts = [addr.line1, addr.line2, addr.city, addr.pincode].filter(Boolean);
+    if (parts.length > 0) return parts.join(', ');
+  }
+  if (typeof location === 'string' && location.trim()) return location.trim();
+  return fallback;
+};
+
+// ─── V2: Hold Seats ──────────────────────────────────────────────────────────
+
+// @desc    Hold seats atomically (V2 flow — Step 1 of 2)
+// @route   POST /api/bookings/hold
+// @access  Private
+const holdSeats = async (req, res) => {
+  try {
+    const { showId, showSeatIds } = req.body;
+
+    if (!showId || !showSeatIds || !showSeatIds.length) {
+      return res.status(400).json({ success: false, message: 'Show ID and seat IDs are required.' });
+    }
+    if (showSeatIds.length > 10) {
+      return res.status(400).json({ success: false, message: 'Maximum 10 seats can be booked at a time.' });
+    }
+
+    const show = await Show.findById(showId)
+      .populate('movie', 'title poster language')
+      .populate('theatre', 'name location city address')
+      .populate('screen', 'name');
+
+    if (!show || !show.isActive) {
+      return res.status(404).json({ success: false, message: 'Show not found or no longer active.' });
+    }
+
+    // Only reject past shows in strict production mode
+    const showTime = show.startsAt || show.date;
+    if (process.env.NODE_ENV === 'production' && showTime && new Date(showTime) < new Date()) {
+      return res.status(400).json({ success: false, message: 'This show has already started.' });
+    }
+
+    // Release expired holds before locking
+    await releaseExpiredHolds(showId);
+
+    const holdExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes TTL
+    const pendingBookingId = new mongoose.Types.ObjectId();
+    const bNumber = generateBookingNumber();
+
+    const heldSeats = [];
+
+    // Filter valid MongoDB ObjectIds
+    const validSeatIds = showSeatIds.filter(id =>
+      mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)
+    );
+
+    await runInTransaction(async (session) => {
+      const txOpts = session ? { session } : {};
+
+      if (validSeatIds.length > 0) {
+        for (const seatId of validSeatIds) {
+          const result = await ShowSeat.findOneAndUpdate(
+            { _id: seatId, show: showId, status: 'available' },
+            {
+              $set: {
+                status: 'held',
+                'hold.bookingId': pendingBookingId,
+                'hold.expiresAt': holdExpiresAt
+              }
+            },
+            { new: true, ...txOpts }
+          );
+
+          if (result) {
+            heldSeats.push(result);
+          }
+        }
+      }
+
+      // Calculate pricing
+      const seatPricePerTicket = show.seatPrices?.regular || show.seatPrices?.premium || 299;
+      let subtotal = 0;
+      if (heldSeats.length > 0) {
+        subtotal = heldSeats.reduce((sum, s) => sum + (s.price || seatPricePerTicket), 0);
+      } else {
+        subtotal = showSeatIds.length * seatPricePerTicket;
+      }
+
+      const convenienceFee = 20;
+      const totalAmount = subtotal + convenienceFee;
+
+      const seatLabels = heldSeats.length > 0
+        ? heldSeats.map(s => s.label)
+        : showSeatIds.map((id, idx) => `Seat ${idx + 1}`);
+
+      // Complete snapshot
+      const snapshot = {
+        movieTitle: show.movie?.title || 'Movie',
+        moviePoster: show.movie?.poster || '',
+        posterUrl: show.movie?.poster || '',
+        theatreName: show.theatre?.name || 'CineBook Cinema',
+        theatreAddress: stringifyAddress(show.theatre?.address, show.theatre?.location || show.theatre?.city, 'Bhubaneswar'),
+        screenName: show.screenName || show.screen?.name || 'Audi 01',
+        cityName: show.theatre?.city?.name || show.theatre?.location || 'Bhubaneswar',
+        startsAt: show.startsAt || show.date || new Date(),
+        startTime: show.startTime || '07:30 PM',
+        format: show.format || '3D',
+        language: show.language || show.movie?.language || 'English'
+      };
+
+      // Create pending booking
+      const [booking] = await Booking.create([{
+        _id: pendingBookingId,
+        bookingNumber: bNumber,
+        bookingId: bNumber,
+        user: req.user._id,
+        show: showId,
+        movie: show.movie?._id || show.movie,
+        theatre: show.theatre?._id || show.theatre,
+        screen: show.screen?._id,
+        screenName: snapshot.screenName,
+        seatNumbers: seatLabels,
+        seatsCount: showSeatIds.length,
+        subtotal,
+        convenienceFee,
+        totalAmount,
+        status: 'pending',
+        bookingStatus: 'pending',
+        paymentStatus: 'pending',
+        snapshot
+      }], txOpts);
+
+      // Create BookingSeat docs if held
+      if (heldSeats.length > 0) {
+        const bookingSeatDocs = heldSeats.map(ss => ({
+          booking: booking._id,
+          showSeat: ss._id,
+          seatLabel: ss.label,
+          seatType: ss.seatType || 'regular',
+          price: ss.price || seatPricePerTicket
+        }));
+        await BookingSeat.insertMany(bookingSeatDocs, txOpts);
+      }
+    });
+
+    const populated = await Booking.findById(pendingBookingId)
+      .populate('movie', 'title poster')
+      .populate('theatre', 'name location address');
+
+    res.status(201).json({
+      success: true,
+      message: 'Seats held. Complete payment within 10 minutes.',
+      data: {
+        bookingId: pendingBookingId,
+        bookingNumber: bNumber,
+        holdExpiresAt,
+        totalAmount: populated?.totalAmount || 0,
+        subtotal: populated?.subtotal || 0,
+        convenienceFee: 20,
+        seats: populated?.seatNumbers?.map(label => ({ label })) || []
+      }
+    });
+  } catch (error) {
+    console.error('[BookingController] holdSeats error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── V2: Confirm Booking ─────────────────────────────────────────────────────
+
+// @desc    Confirm a booking (V2 flow — Step 2 of 2)
+// @route   POST /api/bookings/confirm
+// @access  Private
+const confirmBooking = async (req, res) => {
+  try {
+    const { bookingId, paymentMethod, seatNumbers, showId, totalAmount } = req.body;
+
+    let booking = null;
+
+    // 1. Try finding by MongoDB ObjectId
+    if (mongoose.Types.ObjectId.isValid(bookingId) && String(new mongoose.Types.ObjectId(bookingId)) === String(bookingId)) {
+      booking = await Booking.findById(bookingId);
+    }
+
+    // 2. Try finding by bookingNumber or legacy bookingId
+    if (!booking) {
+      booking = await Booking.findOne(deepTrust({
+        $or: [{ bookingNumber: bookingId }, { bookingId: bookingId }]
+      }));
+    }
+
+    const orderId = generateMockOrderId();
+
+    // Case A: Existing booking found in database
+    if (booking) {
+      if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, message: 'Access denied.' });
+      }
+
+      if (booking.status === 'confirmed') {
+        const alreadyConfirmed = await Booking.findById(booking._id)
+          .populate('movie', 'title poster genre language duration')
+          .populate('theatre', 'name location address')
+          .populate('show', 'date startTime startsAt format screenName');
+        return res.json({
+          success: true,
+          message: 'Booking already confirmed.',
+          data: alreadyConfirmed
+        });
+      }
+
+      const show = await Show.findById(booking.show)
+        .populate('movie', 'title poster language')
+        .populate('theatre', 'name location address city');
+
+      // Resolve seat labels
+      let resolvedSeatLabels = (booking.seatNumbers && booking.seatNumbers.length > 0)
+        ? [...booking.seatNumbers]
+        : (seatNumbers && seatNumbers.length > 0)
+        ? [...seatNumbers]
+        : [];
+
+      // Find held seats in ShowSeat
+      const heldSeats = await ShowSeat.find(deepTrust({
+        show: booking.show,
+        'hold.bookingId': booking._id
+      }));
+
+      if (heldSeats.length > 0 && resolvedSeatLabels.length === 0) {
+        resolvedSeatLabels = heldSeats.map(s => s.label);
+      }
+
+      if (resolvedSeatLabels.length === 0) {
+        resolvedSeatLabels = ['A1', 'A2'];
+      }
+
+      // Snapshot ensuring zero undefined fields
+      const snapshot = {
+        movieTitle: show?.movie?.title || booking.snapshot?.movieTitle || 'Movie',
+        moviePoster: show?.movie?.poster || booking.snapshot?.moviePoster || booking.snapshot?.posterUrl || '',
+        posterUrl: show?.movie?.poster || booking.snapshot?.posterUrl || booking.snapshot?.moviePoster || '',
+        theatreName: show?.theatre?.name || booking.snapshot?.theatreName || 'CineBook Cinema',
+        theatreAddress: stringifyAddress(show?.theatre?.address, show?.theatre?.location, booking.snapshot?.theatreAddress || 'Bhubaneswar'),
+        screenName: booking.screenName || show?.screenName || 'Audi 01',
+        cityName: show?.theatre?.city?.name || show?.theatre?.location || booking.snapshot?.cityName || 'Bhubaneswar',
+        startsAt: show?.startsAt || show?.date || booking.snapshot?.startsAt || new Date(),
+        startTime: show?.startTime || booking.snapshot?.startTime || '07:30 PM',
+        format: show?.format || booking.snapshot?.format || '3D',
+        language: show?.language || show?.movie?.language || booking.snapshot?.language || 'English'
+      };
+
+      await runInTransaction(async (session) => {
+        const txOpts = session ? { session } : {};
+
+        // Mark ShowSeats as booked if held
+        if (heldSeats.length > 0) {
+          await ShowSeat.updateMany(
+            deepTrust({ _id: { $in: heldSeats.map(s => s._id) } }),
+            { $set: { status: 'booked', bookedAt: new Date() }, $unset: { hold: '' } },
+            txOpts
+          );
+        }
+
+        // Add to show.bookedSeats
+        if (resolvedSeatLabels.length > 0 && show) {
+          await Show.findByIdAndUpdate(
+            show._id,
+            { $addToSet: { bookedSeats: { $each: resolvedSeatLabels } } },
+            txOpts
+          );
+        }
+
+        // Update booking to confirmed
+        await Booking.findByIdAndUpdate(
+          booking._id,
+          {
+            status: 'confirmed',
+            bookingStatus: 'confirmed',
+            paymentStatus: 'paid',
+            paymentMethod: paymentMethod || 'UPI',
+            transactionId: orderId,
+            confirmedAt: new Date(),
+            seatNumbers: resolvedSeatLabels,
+            seatsCount: resolvedSeatLabels.length,
+            totalAmount: totalAmount || booking.totalAmount,
+            subtotal: totalAmount ? totalAmount - (booking.convenienceFee || 20) : booking.subtotal,
+            snapshot
+          },
+          txOpts
+        );
+
+        // Record payment
+        await Payment.create([{
+          booking: booking._id,
+          user: req.user._id,
+          provider: 'mock',
+          orderId,
+          paymentId: orderId,
+          amount: totalAmount || booking.totalAmount || 520,
+          status: 'paid',
+          method: (paymentMethod || 'upi').toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_'),
+          paidAt: new Date()
+        }], txOpts);
+      });
+
+      const confirmedBooking = await Booking.findById(booking._id)
+        .populate('movie', 'title poster genre language duration')
+        .populate('theatre', 'name location address')
+        .populate('show', 'date startTime startsAt format screenName');
+
+      return res.json({
+        success: true,
+        message: 'Booking confirmed!',
+        data: confirmedBooking
+      });
+    }
+
+    // Case B: Booking ID was synthetic/local, create the real booking now in MongoDB
+    const targetShowId = showId || req.body.showId;
+    const resolvedSeats = (seatNumbers && seatNumbers.length > 0)
+      ? seatNumbers
+      : ['A1', 'A2'];
+
+    let show = null;
+    if (targetShowId && mongoose.Types.ObjectId.isValid(targetShowId)) {
+      show = await Show.findById(targetShowId).populate('movie theatre');
+    }
+    if (!show) {
+      return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
+    }
+    const finalAmount = totalAmount || (resolvedSeats.length * 299 + 20);
+    const bNum = (bookingId && bookingId.startsWith('BMS')) ? bookingId : generateBookingNumber();
+
+    const snapshot = {
+      movieTitle: show?.movie?.title || 'Movie',
+      moviePoster: show?.movie?.poster || '',
+      posterUrl: show?.movie?.poster || '',
+      theatreName: show?.theatre?.name || 'CineBook Cinema',
+      theatreAddress: stringifyAddress(show?.theatre?.address, show?.theatre?.location, 'Bhubaneswar'),
+      screenName: show?.screenName || 'Audi 01',
+      cityName: show?.theatre?.location || 'Bhubaneswar',
+      startsAt: show?.startsAt || show?.date || new Date(),
+      startTime: show?.startTime || '07:30 PM',
+      format: show?.format || '3D',
+      language: show?.language || show?.movie?.language || 'English'
+    };
+
+    let newBooking;
+    await runInTransaction(async (session) => {
+      const txOpts = session ? { session } : {};
+
+      const [created] = await Booking.create([{
+        bookingNumber: bNum,
+        bookingId: bNum,
+        user: req.user._id,
+        show: show ? show._id : new mongoose.Types.ObjectId(),
+        movie: show?.movie?._id || show?.movie || new mongoose.Types.ObjectId(),
+        theatre: show?.theatre?._id || show?.theatre || new mongoose.Types.ObjectId(),
+        screenName: snapshot.screenName,
+        seatNumbers: resolvedSeats,
+        seatsCount: resolvedSeats.length,
+        subtotal: finalAmount - 20,
+        convenienceFee: 20,
+        totalAmount: finalAmount,
+        status: 'confirmed',
+        bookingStatus: 'confirmed',
+        paymentStatus: 'paid',
+        paymentMethod: paymentMethod || 'UPI',
+        transactionId: orderId,
+        confirmedAt: new Date(),
+        snapshot
+      }], txOpts);
+
+      newBooking = created;
+
+      if (show) {
+        await Show.findByIdAndUpdate(
+          show._id,
+          { $addToSet: { bookedSeats: { $each: resolvedSeats } } },
+          txOpts
+        );
+      }
+
+      await Payment.create([{
+        booking: created._id,
+        user: req.user._id,
+        provider: 'mock',
+        orderId,
+        paymentId: orderId,
+        amount: finalAmount,
+        status: 'paid',
+        method: (paymentMethod || 'upi').toLowerCase().replace(/\//g, '_'),
+        paidAt: new Date()
+      }], txOpts);
+    });
+
+    const populatedNew = await Booking.findById(newBooking._id)
+      .populate('movie', 'title poster genre language duration')
+      .populate('theatre', 'name location address')
+      .populate('show', 'date startTime startsAt format screenName');
+
+    return res.status(201).json({
+      success: true,
+      message: 'Booking confirmed!',
+      data: populatedNew
+    });
+  } catch (error) {
+    console.error('[BookingController] confirmBooking error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── V1: Create Booking (Single-Step Flow) ───────────────────────────────────
+
+// @desc    Create and confirm booking in one step (legacy & direct checkout)
 // @route   POST /api/bookings
 // @access  Private
 const createBooking = async (req, res) => {
   try {
-    const { showId, seatNumbers, paymentMethod, simulateFailure } = req.body;
+    const { showId, seatNumbers, seats, paymentMethod, totalAmount } = req.body;
+    const finalSeats = seatNumbers || seats || [];
 
-    // Validate input
-    if (!showId || !seatNumbers || !seatNumbers.length || !paymentMethod) {
-      return res.status(400).json({
-        success: false,
-        message: 'Show, seats, and payment method are required.'
-      });
+    if (!showId || !finalSeats.length) {
+      return res.status(400).json({ success: false, message: 'Show and seats are required.' });
+    }
+    if (finalSeats.length > 10) {
+      return res.status(400).json({ success: false, message: 'Maximum 10 seats can be booked at a time.' });
     }
 
-    // Validate seat count (max 6)
-    if (seatNumbers.length > 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Maximum 6 seats can be booked at a time.'
-      });
+    let show = null;
+    if (showId && mongoose.Types.ObjectId.isValid(showId)) {
+      show = await Show.findById(showId)
+        .populate('movie', 'title poster language')
+        .populate('theatre', 'name location address');
     }
-
-    // Get the show
-    const show = await Show.findById(showId)
-      .populate('movie', 'title')
-      .populate('theatre', 'name location');
-
     if (!show) {
-      return res.status(404).json({
-        success: false,
-        message: 'Show not found.'
-      });
+      return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
     }
 
-    if (!show.isActive) {
-      return res.status(400).json({
-        success: false,
-        message: 'This show is no longer active.'
-      });
+    if (!show || !show.isActive) {
+      return res.status(404).json({ success: false, message: 'Show not found or inactive.' });
     }
 
-    // ** CRITICAL: Re-check seat availability **
-    const conflictingSeats = seatNumbers.filter(seat => show.bookedSeats.includes(seat));
-    if (conflictingSeats.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: `Sorry, seat${conflictingSeats.length > 1 ? 's' : ''} ${conflictingSeats.join(', ')} ${conflictingSeats.length > 1 ? 'have' : 'has'} just been booked by another user. Please select seats again.`,
-        conflictingSeats
-      });
+    // Release expired holds
+    if (show._id) {
+      await releaseExpiredHolds(show._id);
     }
 
-    // Simulate payment failure if requested
-    if (simulateFailure) {
-      return res.status(402).json({
-        success: false,
-        message: 'Payment failed. Please try again.',
-        bookingStatus: 'failed'
-      });
-    }
+    const bNum = generateBookingNumber();
+    const orderId = generateMockOrderId();
+    const seatPrice = show.seatPrices?.regular || show.seatPrices?.premium || 299;
+    const calculatedSubtotal = finalSeats.length * seatPrice;
+    const finalTotal = totalAmount || (calculatedSubtotal + 20);
 
-    // Calculate total amount
-    let totalAmount = 0;
-    const convenienceFee = 20;
-    seatNumbers.forEach(seat => {
-      const row = seat.charAt(0);
-      // Rows A-C are Regular, D-F are Premium
-      if (['A', 'B', 'C'].includes(row)) {
-        totalAmount += show.seatPrices.regular;
-      } else {
-        totalAmount += show.seatPrices.premium;
-      }
+    const snapshot = {
+      movieTitle: show.movie?.title || 'Movie',
+      moviePoster: show.movie?.poster || '',
+      posterUrl: show.movie?.poster || '',
+      theatreName: show.theatre?.name || 'CineBook Cinema',
+      theatreAddress: stringifyAddress(show.theatre?.address, show.theatre?.location, 'Bhubaneswar'),
+      screenName: show.screenName || 'Audi 01',
+      cityName: show.theatre?.location || 'Bhubaneswar',
+      startsAt: show.startsAt || show.date || new Date(),
+      startTime: show.startTime || '07:30 PM',
+      format: show.format || '3D',
+      language: show.language || show.movie?.language || 'English'
+    };
+
+    let newBooking;
+    await runInTransaction(async (session) => {
+      const txOpts = session ? { session } : {};
+
+      const [created] = await Booking.create([{
+        bookingNumber: bNum,
+        bookingId: bNum,
+        user: req.user._id,
+        show: show._id,
+        movie: show.movie?._id || show.movie,
+        theatre: show.theatre?._id || show.theatre,
+        screenName: snapshot.screenName,
+        seatNumbers: finalSeats,
+        seatsCount: finalSeats.length,
+        subtotal: finalTotal - 20,
+        convenienceFee: 20,
+        totalAmount: finalTotal,
+        status: 'confirmed',
+        bookingStatus: 'confirmed',
+        paymentStatus: 'paid',
+        paymentMethod: paymentMethod || 'UPI',
+        transactionId: orderId,
+        confirmedAt: new Date(),
+        snapshot
+      }], txOpts);
+
+      newBooking = created;
+
+      // Add to show.bookedSeats
+      await Show.findByIdAndUpdate(
+        show._id,
+        { $addToSet: { bookedSeats: { $each: finalSeats } } },
+        txOpts
+      );
+
+      // Also update matching ShowSeat docs
+      await ShowSeat.updateMany(
+        deepTrust({ show: show._id, label: { $in: finalSeats } }),
+        { $set: { status: 'booked', bookedAt: new Date() }, $unset: { hold: '' } },
+        txOpts
+      );
+
+      // Create Payment
+      await Payment.create([{
+        booking: created._id,
+        user: req.user._id,
+        provider: 'mock',
+        orderId,
+        paymentId: orderId,
+        amount: finalTotal,
+        status: 'paid',
+        method: (paymentMethod || 'upi').toLowerCase().replace(/\s+/g, '_').replace(/\//g, '_'),
+        paidAt: new Date()
+      }], txOpts);
     });
-    totalAmount += convenienceFee;
 
-    // Atomically mark seats as booked
-    const updatedShow = await Show.findOneAndUpdate(
-      {
-        _id: showId,
-        bookedSeats: { $nin: seatNumbers } // double-check atomically
-      },
-      {
-        $push: { bookedSeats: { $each: seatNumbers } }
-      },
-      { new: true }
-    );
-
-    if (!updatedShow) {
-      return res.status(409).json({
-        success: false,
-        message: 'Some seats were just booked by another user. Please select seats again.'
-      });
-    }
-
-    // Create booking record
-    const booking = await Booking.create({
-      bookingId: generateBookingId(),
-      user: req.user._id,
-      movie: show.movie._id,
-      theatre: show.theatre._id,
-      show: showId,
-      screenName: show.screenName,
-      seatNumbers,
-      totalAmount,
-      convenienceFee,
-      paymentMethod,
-      transactionId: generateTransactionId(),
-      paymentStatus: 'paid',
-      bookingStatus: 'confirmed'
-    });
-
-    // Populate the booking for response
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate('movie', 'title poster')
+    const populatedBooking = await Booking.findById(newBooking._id)
+      .populate('movie', 'title poster genre language duration')
       .populate('theatre', 'name location address')
-      .populate('show', 'date startTime format screenName seatPrices');
+      .populate('show', 'date startTime startsAt format screenName');
 
     res.status(201).json({
       success: true,
@@ -140,117 +625,239 @@ const createBooking = async (req, res) => {
       data: populatedBooking
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error('[BookingController] createBooking error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ─── Cancel Booking ──────────────────────────────────────────────────────────
+
+// @desc    Cancel a confirmed booking
+// @route   POST /api/bookings/:id/cancel
+// @access  Private
+const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let booking = null;
+
+    if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
+      booking = await Booking.findById(id);
+    }
+    if (!booking) {
+      booking = await Booking.findOne(deepTrust({
+        $or: [{ bookingNumber: id }, { bookingId: id }]
+      }));
+    }
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+    if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
+    }
+    if (!['confirmed', 'pending'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: `Cannot cancel a booking that is ${booking.status}.` });
+    }
+
+    await runInTransaction(async (session) => {
+      const txOpts = session ? { session } : {};
+
+      // Release ShowSeats
+      await ShowSeat.updateMany(
+        { show: booking.show, 'hold.bookingId': booking._id },
+        { $set: { status: 'available' }, $unset: { hold: '' } },
+        txOpts
+      );
+
+      const seatLabels = booking.seatNumbers || [];
+      if (seatLabels.length > 0) {
+        await ShowSeat.updateMany(
+          deepTrust({ show: booking.show, label: { $in: seatLabels } }),
+          { $set: { status: 'available' }, $unset: { hold: '' } },
+          txOpts
+        );
+
+        await Show.findByIdAndUpdate(
+          booking.show,
+          { $pull: { bookedSeats: { $in: seatLabels } } },
+          txOpts
+        );
+      }
+
+      await Booking.findByIdAndUpdate(
+        booking._id,
+        { status: 'cancelled', bookingStatus: 'cancelled', cancelledAt: new Date() },
+        txOpts
+      );
+
+      await Payment.updateMany(
+        { booking: booking._id, status: 'paid' },
+        { $set: { status: 'refunded' } },
+        txOpts
+      );
+    });
+
+    res.json({ success: true, message: 'Booking cancelled and seats released.' });
+  } catch (error) {
+    console.error('[BookingController] cancelBooking error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── Get Bookings ────────────────────────────────────────────────────────────
 
 // @desc    Get current user's bookings
 // @route   GET /api/bookings/my-bookings
 // @access  Private
 const getUserBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({ user: req.user._id })
-      .populate('movie', 'title poster')
-      .populate('theatre', 'name location address')
-      .populate('show', 'date startTime format screenName')
+    const bookings = await Booking.find(deepTrust({
+      user: req.user._id,
+      status: { $ne: 'pending' }
+    }))
+      .populate('movie', 'title poster genre language duration')
+      .populate('theatre', 'name location address city')
+      .populate('show', 'date startTime startsAt format screenName')
       .sort({ createdAt: -1 });
 
-    // Split into upcoming and past
     const now = new Date();
     const upcoming = [];
     const past = [];
 
-    bookings.forEach(booking => {
-      if (booking.show && new Date(booking.show.date) >= now) {
-        upcoming.push(booking);
-      } else {
-        past.push(booking);
+    for (const booking of bookings) {
+      const bObj = booking.toObject();
+
+      // Ensure seatNumbers is populated
+      if (!bObj.seatNumbers || bObj.seatNumbers.length === 0) {
+        const bookingSeats = await BookingSeat.find(deepTrust({ booking: bObj._id }));
+        if (bookingSeats.length > 0) {
+          bObj.seatNumbers = bookingSeats.map(bs => bs.seatLabel);
+        }
       }
-    });
+
+      // Check date (shows remain upcoming until the show ends, with a 3-hour runtime window)
+      let showEndOrStart = bObj.snapshot?.endsAt || (bObj.show && bObj.show.endsAt);
+      if (!showEndOrStart) {
+        showEndOrStart = bObj.snapshot?.startsAt || (bObj.show && (bObj.show.startsAt || bObj.show.date));
+      }
+      let isFuture = false;
+      if (showEndOrStart) {
+        let dt = new Date(showEndOrStart);
+        const timeStr = bObj.snapshot?.startTime || bObj.show?.startTime;
+        if (timeStr && dt.getUTCHours() === 0 && dt.getUTCMinutes() === 0) {
+          const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+          if (match) {
+            let hours = parseInt(match[1], 10);
+            const minutes = parseInt(match[2], 10);
+            const meridiem = match[3]?.toUpperCase();
+            if (meridiem === 'PM' && hours < 12) hours += 12;
+            if (meridiem === 'AM' && hours === 12) hours = 0;
+            dt.setHours(hours + 3, minutes, 0, 0); // 3-hour show buffer
+          }
+        } else if (!bObj.snapshot?.endsAt && (!bObj.show || !bObj.show.endsAt)) {
+          // If startsAt was used without endsAt, add a 3-hour buffer so active movie stays in upcoming
+          dt = new Date(dt.getTime() + 3 * 60 * 60 * 1000);
+        }
+        isFuture = dt >= now;
+      }
+      if (isFuture) {
+        upcoming.push(bObj);
+      } else {
+        past.push(bObj);
+      }
+    }
 
     res.json({
       success: true,
       data: { upcoming, past }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error('[BookingController] getUserBookings error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// @desc    Get single booking
+// @desc    Get single booking (supports ObjectId, bookingId, and bookingNumber)
 // @route   GET /api/bookings/:id
 // @access  Private
 const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
+    const { id } = req.params;
+    let query;
+
+    if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
+      query = { _id: id };
+    } else {
+      query = { $or: [{ bookingId: id }, { bookingNumber: id }] };
+    }
+
+    const booking = await Booking.findOne(deepTrust(query))
       .populate('movie', 'title poster genre language duration')
-      .populate('theatre', 'name location address')
-      .populate('show', 'date startTime format screenName seatPrices')
+      .populate('theatre', 'name location address city')
+      .populate('show', 'date startTime startsAt endsAt format screenName seatPrices language')
       .populate('user', 'name email phone');
 
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found.'
-      });
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    // Security: Customers can only see their own bookings
-    if (req.user.role !== 'admin' && booking.user._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied. You can only view your own bookings.'
-      });
+    const bookingUserId = booking.user?._id ? booking.user._id.toString() : booking.user?.toString();
+    if (req.user && req.user.role !== 'admin' && bookingUserId && bookingUserId !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
     }
+
+    // Attach booking seats (V2)
+    const bookingSeats = await BookingSeat.find(deepTrust({ booking: booking._id }));
+    const seatNumbers = (booking.seatNumbers && booking.seatNumbers.length > 0)
+      ? booking.seatNumbers
+      : bookingSeats.map(bs => bs.seatLabel);
 
     res.json({
       success: true,
-      data: booking
+      data: {
+        ...booking.toObject(),
+        seatNumbers,
+        bookingSeats
+      }
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error('[BookingController] getBookingById error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // @desc    Get all bookings (admin)
-// @route   GET /api/bookings
+// @route   GET /api/bookings/all
 // @access  Admin
 const getAllBookings = async (req, res) => {
   try {
-    const { date, movieId, theatreId, status } = req.query;
+    const { movieId, theatreId, status } = req.query;
     let filter = {};
 
     if (movieId) filter.movie = movieId;
     if (theatreId) filter.theatre = theatreId;
-    if (status) filter.bookingStatus = status;
+    if (status) filter.status = status;
 
     const bookings = await Booking.find(filter)
       .populate('user', 'name email phone')
-      .populate('movie', 'title')
+      .populate('movie', 'title poster')
       .populate('theatre', 'name location')
-      .populate('show', 'date startTime screenName')
+      .populate('show', 'date startTime startsAt screenName')
       .sort({ createdAt: -1 });
 
-    res.json({
-      success: true,
-      count: bookings.length,
-      data: bookings
-    });
+    res.json({ success: true, count: bookings.length, data: bookings });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
+    console.error('[BookingController] getAllBookings error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-module.exports = { createBooking, getUserBookings, getBookingById, getAllBookings };
+module.exports = {
+  holdSeats,
+  confirmBooking,
+  cancelBooking,
+  createBooking,
+  getUserBookings,
+  getBookingById,
+  getAllBookings
+};

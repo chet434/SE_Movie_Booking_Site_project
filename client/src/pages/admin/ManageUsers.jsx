@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllUsers } from '../../services/api';
-import { FaUsers } from 'react-icons/fa';
+import { Icon } from '../../components/ui';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -22,7 +22,7 @@ const ManageUsers = () => {
 
   return (
     <div>
-      <h3 className="fw-bold mb-4"><FaUsers className="me-2 text-warning" />Manage Users</h3>
+      <h3 className="fw-bold mb-4" style={{ color: 'var(--cs-text-primary)' }}><Icon name="icon-users" className="me-2" size={22} style={{ color: 'var(--cs-warning)' }} />Manage Users</h3>
       <div className="table-responsive">
         <table className="table table-hover align-middle">
           <thead className="table-dark">

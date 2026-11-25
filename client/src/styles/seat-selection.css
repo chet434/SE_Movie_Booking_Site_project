@@ -1,0 +1,205 @@
+/* Custom properties matching BookMyShow CineBook branding */
+:root {
+  --cb-crimson: #C41230;
+  --cb-green: #149D4F;
+  --cb-green-dark: #0F7E3E;
+  --cb-sold-bg: #EAEAEA;
+  --cb-sold-text: #A6A6A6;
+  --cb-bestseller: #F2A900;
+  --cb-bestseller-bg: #FFFDF0;
+}
+
+/* Base layouts */
+.seat-selection-container {
+  background-color: #F8F9FA;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* Seat map grid container */
+.seat-map-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 30px 24px 60px;
+  overflow-x: auto;
+}
+
+/* Seating Tiers & dividers */
+.tier-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+  position: relative;
+  margin: 40px 0 20px;
+}
+.tier-header::before,
+.tier-header::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 70px);
+  height: 1px;
+  background-color: #E2E2E2;
+}
+.tier-header::before { left: 0; }
+.tier-header::after { right: 0; }
+
+/* The Row Labels */
+.row-label {
+  width: 30px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Individual Seat Buttons */
+.seat-box {
+  width: 24px;
+  height: 24px;
+  font-size: 9px;
+  font-weight: 500;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease-in-out;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Seat States */
+.seat-box.available {
+  background-color: #FFFFFF;
+  border-color: var(--cb-green);
+  color: var(--cb-green);
+}
+.seat-box.available:hover {
+  background-color: var(--cb-green);
+  color: #FFFFFF;
+}
+
+.seat-box.selected {
+  background-color: var(--cb-green);
+  border-color: var(--cb-green);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.seat-box.bestseller {
+  background-color: var(--cb-bestseller-bg);
+  border-color: var(--cb-bestseller);
+  color: var(--cb-bestseller);
+}
+.seat-box.bestseller:hover {
+  background-color: var(--cb-bestseller);
+  color: #FFFFFF;
+}
+
+.seat-box.bestseller.selected {
+  background-color: var(--cb-green);
+  border-color: var(--cb-green);
+  color: #FFFFFF;
+}
+
+.seat-box.sold {
+  background-color: var(--cb-sold-bg);
+  border-color: transparent;
+  color: var(--cb-sold-text);
+  cursor: not-allowed;
+  font-size: 0; /* hides the text but keeps dimensions */
+}
+.seat-box.sold::after {
+  content: '';
+}
+
+.seat-box.companion-access {
+  border-color: var(--cb-green);
+  color: var(--cb-green);
+  background-color: #FFFFFF;
+  font-size: 11px;
+}
+.seat-box.companion-access:hover {
+  background-color: var(--cb-green);
+  color: #FFFFFF;
+}
+.seat-box.companion-access.selected {
+  background-color: var(--cb-green);
+  border-color: var(--cb-green);
+  color: #FFFFFF;
+}
+
+/* Top bar details */
+.top-nav-bar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E5E5E5;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.times-row-bar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E5E5E5;
+  padding: 10px 24px;
+  overflow-x: auto;
+}
+
+/* 3D Perspective screen indicator */
+.perspective-screen {
+  width: 340px;
+  max-width: 90%;
+  height: 12px;
+  margin: 40px auto 10px;
+  background: linear-gradient(to top, rgba(20, 157, 79, 0.05) 0%, rgba(204, 18, 48, 0.08) 100%);
+  border-top: 3px solid #D2D2D2;
+  transform: perspective(12px) rotateX(-2deg);
+  border-radius: 4px;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* Utility Helpers */
+.bg-cb-crimson {
+  background-color: var(--cb-crimson) !important;
+}
+
+.text-cb-crimson {
+  color: var(--cb-crimson) !important;
+}
+
+.border-cb-crimson {
+  border-color: var(--cb-crimson) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.fs-7 {
+  font-size: 0.85rem;
+}
+
+.fs-8 {
+  font-size: 0.75rem;
+}
+
+.seat-grid-zoom-area {
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center top;
+}

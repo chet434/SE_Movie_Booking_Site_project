@@ -1,0 +1,236 @@
+/**
+ * explore-movies.css — CineBook Explore Movies Page Styles
+ */
+
+.cb-explore-page {
+  background-color: #F5F5F5;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Promotional Stream Banner */
+.cb-explore-banner {
+  background-color: #1E2433;
+  background-image: linear-gradient(90deg, #121620 0%, #1A2130 50%, #222B3D 100%);
+  border-radius: 12px;
+  min-height: 240px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.cb-banner-btn {
+  background-color: #C41230;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  border-radius: 6px;
+  border: none;
+  box-shadow: 0 2px 6px rgba(196, 18, 48, 0.3);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cb-banner-btn:hover {
+  background-color: #A80E28;
+}
+
+/* Sidebar Accordions */
+.cb-filter-card {
+  background-color: #FFFFFF;
+  border-radius: 6px;
+  border: 1px solid #EEEEEE;
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cb-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cb-filter-header:hover {
+  background-color: #FAFAFA;
+}
+
+.cb-filter-title {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cb-filter-clear {
+  font-size: 12px;
+  color: #666666;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.cb-filter-clear:hover {
+  color: #C41230;
+}
+
+/* Rectangular Filter Chips in Sidebar */
+.cb-filter-chip {
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E2E2;
+  color: #C41230;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.cb-filter-chip:hover {
+  border-color: #C41230;
+}
+
+.cb-filter-chip.active {
+  background-color: #C41230;
+  border-color: #C41230;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* Quick Filter Fully Rounded Language Pills */
+.cb-lang-pill {
+  padding: 5px 16px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 400;
+  background-color: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  color: #C41230;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.cb-lang-pill:hover {
+  border-color: #C41230;
+}
+
+.cb-lang-pill.active {
+  background-color: #C41230;
+  border-color: #C41230;
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* Movie Card */
+.cb-movie-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  cursor: pointer;
+}
+
+.cb-poster-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #000000;
+  aspect-ratio: 2 / 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cb-movie-card:hover .cb-poster-wrapper {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.cb-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cb-stats-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  background-color: #000000;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.cb-movie-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #222222;
+  margin-top: 8px;
+  margin-bottom: 2px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cb-movie-cert {
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.2;
+}
+
+.cb-movie-langs {
+  font-size: 13px;
+  color: #666666;
+  margin-top: 2px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Skeletons */
+.cb-skeleton-poster {
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 200% 100%;
+  animation: cbShimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.cb-skeleton-line {
+  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+  background-size: 200% 100%;
+  animation: cbShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes cbShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

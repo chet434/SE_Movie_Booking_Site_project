@@ -2,64 +2,88 @@ import React from 'react';
 import TicketDetailGrid from './TicketDetailGrid';
 import TicketSeparator from './TicketSeparator';
 import BookingBarcode from './BookingBarcode';
+import { IconCheck, IconTicket } from '@tabler/icons-react';
+
+const formatText = (val, fallback = '') => {
+  if (!val) return fallback;
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') {
+    return val.name || val.title || val.line1 || fallback;
+  }
+  return String(val);
+};
 
 const BookingTicket = ({ booking, printable = false }) => {
   if (!booking) return null;
 
+  const movieTitle = formatText(booking.movie?.title || booking.snapshot?.movieTitle || booking.show?.movie?.title, 'Movie');
+  const poster = booking.movie?.poster || booking.snapshot?.moviePoster || booking.snapshot?.posterUrl || booking.show?.movie?.poster;
+  const language = formatText(booking.movie?.language || booking.snapshot?.language || booking.show?.language, 'Hindi');
+  const format = formatText(booking.show?.format || booking.snapshot?.format, '2D');
+  const theatreName = formatText(booking.theatre?.name || booking.snapshot?.theatreName || booking.show?.theatre?.name, 'CineBook Cinema');
+  const code = booking.bookingNumber || booking.bookingId || booking._id;
+
   return (
-    <div 
-      className={`cs-panel overflow-hidden mx-auto ${printable ? 'printable-ticket' : ''}`}
-      style={{ 
-        maxWidth: '500px', 
-        backgroundColor: 'white', // Ticket is usually white for printability and contrast
-        color: '#1a1a1a', 
-        fontFamily: "'Manrope', sans-serif" 
+    <div
+      className={`bg-white rounded-3 shadow border overflow-hidden mx-auto ${printable ? 'printable-ticket' : ''}`}
+      style={{
+        maxWidth: '480px',
+        width: '100%'
       }}
-      id={printable ? "printable-ticket" : undefined}
+      id={printable ? 'printable-ticket' : undefined}
     >
-      {/* Ticket Header & Poster */}
-      <div className="position-relative">
-        <div 
-          style={{ 
-            height: '140px', 
-            background: 'linear-gradient(to right, var(--cs-surface-muted), var(--cs-surface))',
-            position: 'relative'
-          }}
-        >
-          {booking.movie?.poster && (
-            <div 
-              className="position-absolute top-0 start-0 w-100 h-100" 
-              style={{
-                backgroundImage: `url(${booking.movie.poster})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                opacity: 0.15
-              }}
-            />
-          )}
+      {/* Header Strip with BMS Red Accent */}
+      <div
+        className="p-3 text-white d-flex align-items-center justify-content-between"
+        style={{ backgroundColor: 'var(--bms-brand-red)' }}
+      >
+        <div className="d-flex align-items-center gap-2">
+          <IconTicket size={22} />
+          <span className="fw-bold" style={{ fontSize: '16px', letterSpacing: '0.5px' }}>
+            cinebook M-Ticket
+          </span>
         </div>
-        
-        <div className="position-absolute bottom-0 start-0 w-100 p-4 pb-3" style={{ background: 'linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))' }}>
-          <h3 className="fw-bold mb-0 text-dark" style={{ textShadow: '0 2px 10px rgba(255,255,255,0.8)' }}>
-            {booking.movie?.title}
-          </h3>
+        <span className="badge bg-white text-danger fw-bold" style={{ fontSize: '11px' }}>
+          CONFIRMED
+        </span>
+      </div>
+
+      {/* Movie Details Banner */}
+      <div className="p-4 border-bottom d-flex gap-3 align-items-center">
+        {poster && (
+          <img
+            src={poster}
+            alt={movieTitle}
+            className="rounded-2 flex-shrink-0 shadow-sm"
+            style={{ width: '64px', height: '96px', objectFit: 'cover' }}
+          />
+        )}
+        <div>
+          <h5 className="fw-bold text-dark mb-1" style={{ fontSize: '18px' }}>
+            {movieTitle}
+          </h5>
+          <p className="text-muted small mb-1">
+            {language} • {format}
+          </p>
+          <div className="small fw-semibold text-danger">
+            {theatreName}
+          </div>
         </div>
       </div>
 
-      <div className="px-4 py-2">
+      {/* Ticket Info Grid */}
+      <div className="p-4 bg-light">
         <TicketDetailGrid booking={booking} />
       </div>
 
       <TicketSeparator />
 
-      <div className="px-4 py-4 d-flex flex-column align-items-center bg-light">
-        <BookingBarcode bookingCode={booking.bookingId || booking._id} />
-        
-        <div className="mt-3 text-center">
-          <span className={`badge ${booking.bookingStatus === 'confirmed' ? 'bg-success' : 'bg-danger'} fs-6`}>
-            {booking.bookingStatus?.toUpperCase()}
-          </span>
-        </div>
+      {/* Barcode & Booking Reference */}
+      <div className="p-4 text-center bg-white">
+        <BookingBarcode bookingCode={code} bookingId={code} />
+        <small className="text-muted mt-2 d-block" style={{ fontSize: '11px' }}>
+          Scan barcode or show this M-Ticket at the cinema entrance.
+        </small>
       </div>
     </div>
   );

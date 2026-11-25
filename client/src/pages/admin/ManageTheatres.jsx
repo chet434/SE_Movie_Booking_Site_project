@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getTheatres, addTheatre, updateTheatre, deleteTheatre } from '../../services/api';
-import { FaPlus, FaEdit, FaTrash, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
+import { Icon } from '../../components/ui';
 
 const emptyTheatre = { name: '', location: '', address: '', screens: [{ screenName: 'Screen 1', totalSeats: 48, rows: 6, seatsPerRow: 8 }] };
 
@@ -77,7 +77,7 @@ const ManageTheatres = () => {
         <h3 className="fw-bold mb-0">Manage Theatres</h3>
         <button className="btn btn-warning fw-bold"
           onClick={() => { setShowForm(!showForm); setEditing(null); setForm(emptyTheatre); }}>
-          {showForm ? <><FaTimes className="me-1" />Close</> : <><FaPlus className="me-1" />Add Theatre</>}
+          {showForm ? <><Icon name="icon-x" size={14} className="me-1" />Close</> : <><Icon name="icon-plus" size={14} className="me-1" />Add Theatre</>}
         </button>
       </div>
 
@@ -118,13 +118,13 @@ const ManageTheatres = () => {
                     <small className="text-muted">{screen.rows}×{screen.seatsPerRow} = {screen.totalSeats} seats</small>
                     {form.screens.length > 1 && (
                       <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeScreen(i)}>
-                        <FaTimes />
+                        <Icon name="icon-x" size={14} />
                       </button>
                     )}
                   </div>
                 ))}
                 <button type="button" className="btn btn-sm btn-outline-secondary" onClick={addScreen}>
-                  <FaPlus className="me-1" /> Add Screen
+                  <Icon name="icon-plus" size={14} className="me-1" /> Add Screen
                 </button>
               </div>
 
@@ -154,15 +154,15 @@ const ManageTheatres = () => {
               {theatres.map(theatre => (
                 <tr key={theatre._id}>
                   <td className="fw-semibold">{theatre.name}</td>
-                  <td><FaMapMarkerAlt className="text-danger me-1" size={12} />{theatre.location}</td>
+                  <td><Icon name="icon-map-pin" className="text-danger me-1" size={12} />{theatre.location}</td>
                   <td><small>{theatre.address}</small></td>
                   <td>{theatre.screens?.length || 0}</td>
                   <td>
                     <button className="btn btn-sm btn-outline-primary me-1" onClick={() => handleEdit(theatre)}>
-                      <FaEdit />
+                      <Icon name="icon-edit" size={14} />
                     </button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(theatre._id)}>
-                      <FaTrash />
+                      <Icon name="icon-trash" size={14} />
                     </button>
                   </td>
                 </tr>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllBookings } from '../../services/api';
-import { FaCalendar, FaChair } from 'react-icons/fa';
+import { Icon } from '../../components/ui';
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -50,13 +50,13 @@ const ManageBookings = () => {
                 <td>{b.theatre?.name}</td>
                 <td>
                   <small>
-                    <FaCalendar size={10} className="me-1" />
+                    <Icon name="icon-calendar-event" size={10} className="me-1" />
                     {b.show?.date && new Date(b.show.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                     {' '}{b.show?.startTime}
                   </small>
                 </td>
                 <td>
-                  <small><FaChair size={10} className="me-1" />{b.seatNumbers?.join(', ')}</small>
+                  <small><Icon name="icon-chair" size={10} className="me-1" />{b.seatNumbers?.join(', ')}</small>
                 </td>
                 <td className="fw-bold text-success">₹{b.totalAmount}</td>
                 <td>

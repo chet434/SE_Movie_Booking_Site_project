@@ -6,20 +6,24 @@ import DashboardRightRail from './DashboardRightRail';
 import MovieCard from '../../components/MovieCard';
 import { getMovies } from '../../services/api';
 
+import { useLocationContext } from '../../context/LocationContext';
+
 const DashboardPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const { selectedLocation } = useLocationContext();
 
   useEffect(() => {
     fetchMovies();
-  }, []);
+  }, [selectedLocation]);
 
   const fetchMovies = async () => {
     try {
       setLoading(true);
-      const res = await getMovies();
+      const res = await getMovies({ location: selectedLocation });
       // Only show up to 5 movies in the grid to fit the 5-card layout requirement
       setMovies(res.data.data.slice(0, 10)); 
     } catch (err) {
@@ -62,9 +66,9 @@ const DashboardPage = () => {
               <SectionHeader title="Now Showing" actionText="View all" />
               
               {loading ? (
-                <div className="row g-3 g-md-4 mb-4">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="col-6 col-md-4 col-lg-3 col-xl">
+                <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-md-4 mb-4">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                    <div key={i} className="col">
                       <div className="card border-0 placeholder-glow" style={{ aspectRatio: '2/3', borderRadius: 'var(--cs-radius-card)' }}>
                         <div className="placeholder w-100 h-100 rounded"></div>
                       </div>
@@ -81,10 +85,10 @@ const DashboardPage = () => {
                   <p className="text-muted mb-0">No shows available in your city right now.</p>
                 </div>
               ) : (
-                <div className="row g-3 g-md-4 mb-4">
+                <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 g-md-4 mb-4">
                   {/* At 1536px width, this fits 5 cards perfectly */}
                   {movies.map(movie => (
-                    <div key={movie._id} className="col-6 col-md-4 col-lg-3 col-xl">
+                    <div key={movie._id} className="col">
                       <MovieCard movie={movie} />
                     </div>
                   ))}

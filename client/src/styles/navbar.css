@@ -1,0 +1,79 @@
+/**
+ * navbar.css — CineBook Navigation & Slide-Over Account Drawer Styles
+ */
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.cb-navbar {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #FFFFFF;
+  z-index: 1040;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.cb-navbar-top {
+  height: 64px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.cb-navbar-sub {
+  height: 40px;
+  background-color: #F5F5F5;
+  border-bottom: 1px solid #E5E5E5;
+}
+
+.cb-nav-link {
+  font-size: 14px;
+  font-weight: 400;
+  color: #333333;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.cb-nav-link:hover {
+  color: #C41230;
+}
+
+.cb-nav-link.active {
+  color: #111111;
+  font-weight: 600;
+  border-bottom: 2px solid #C41230;
+}
+
+.cb-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1060;
+  backdrop-filter: blur(2px);
+}
+
+.cb-drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 360px;
+  max-width: 90vw;
+  background-color: #FFFFFF;
+  z-index: 1061;
+  box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  display: flex;
+  flex-direction: column;
+}
