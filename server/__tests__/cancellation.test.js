@@ -1,6 +1,20 @@
 const { resolveShowCancellability, evaluateCancellation } = require('../utils/cancellationPolicy');
+const { cancelBookingSchema, cancelBookingParamsSchema } = require('../schemas/bookingSchemas');
 
 describe('Cancellation Policy Engine', () => {
+  describe('Zod Validation Schemas', () => {
+    test('cancelBookingParamsSchema accepts valid ObjectIds and booking numbers', () => {
+      expect(() => cancelBookingParamsSchema.parse({ id: '6b071bfdf1cf70d99562fd53' })).not.toThrow();
+      expect(() => cancelBookingParamsSchema.parse({ id: 'BMS115752' })).not.toThrow();
+      expect(() => cancelBookingParamsSchema.parse({ id: '' })).toThrow();
+    });
+
+    test('cancelBookingSchema allows optional or empty reason', () => {
+      expect(cancelBookingSchema.parse({})).toEqual({});
+      expect(cancelBookingSchema.parse({ reason: 'Change of plans' })).toEqual({ reason: 'Change of plans' });
+      expect(() => cancelBookingSchema.parse({ reason: 'a'.repeat(300) })).toThrow();
+    });
+  });
   describe('resolveShowCancellability', () => {
     test('inherits theatre policy when show.isCancellable is null or undefined', () => {
       const show1 = {

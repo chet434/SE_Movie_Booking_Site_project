@@ -67,14 +67,15 @@ const runInTransaction = async (callback) => {
     return callback(null);
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  let session = null;
   try {
+    session = await mongoose.startSession();
+    session.startTransaction();
     const result = await callback(session);
     await session.commitTransaction();
     return result;
   } catch (err) {
-    if (session.inTransaction()) {
+    if (session && session.inTransaction()) {
       try {
         await session.abortTransaction();
       } catch (abortErr) {
@@ -82,13 +83,19 @@ const runInTransaction = async (callback) => {
       }
     }
     // If runtime failed due to standalone mongo lack of replica set, fallback & cache
-    if (err?.code === 20 || String(err?.message).includes('replica set member')) {
+    if (
+      err?.code === 20 ||
+      String(err?.message).includes('replica set member') ||
+      String(err?.message).includes('Transaction numbers are only allowed')
+    ) {
       isReplicaSet = false;
       return callback(null);
     }
     throw err;
   } finally {
-    session.endSession();
+    if (session) {
+      session.endSession();
+    }
   }
 };
 
@@ -696,23 +703,28 @@ const cancelBooking = async (req, res) => {
     let booking = null;
 
     if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === String(id)) {
-      booking = await Booking.findById(id).populate('show theatre');
+      booking = await Booking.findById(id).populate('show theatre user');
     }
     if (!booking) {
       booking = await Booking.findOne(deepTrust({
         $or: [{ bookingNumber: id }, { bookingId: id }]
-      })).populate('show theatre');
+      })).populate('show theatre user');
     }
 
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
-    if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+
+    // Safe Ownership check
+    const ownerId = booking.user?._id ? booking.user._id.toString() : booking.user.toString();
+    if (ownerId !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Access denied.' });
     }
     if (!['confirmed', 'pending'].includes(booking.status)) {
       return res.status(400).json({ success: false, message: `Cannot cancel a booking that is ${booking.status}.` });
     }
+
+    const showId = booking.show?._id || booking.show;
 
     // For confirmed bookings, enforce cancellation policy rules
     let refundSummary = null;
@@ -738,30 +750,61 @@ const cancelBooking = async (req, res) => {
     await runInTransaction(async (session) => {
       const txOpts = session ? { session } : {};
 
-      // Release ShowSeats held by this booking
+      // Collect seats to release from ALL 3 sources
+      // 1. BookingSeat documents
+      const bookingSeats = await BookingSeat.find(
+        deepTrust({ booking: booking._id }),
+        null,
+        txOpts
+      );
+      const showSeatIds = bookingSeats
+        .map(bs => bs.showSeat)
+        .filter(Boolean);
+      const bookingSeatLabels = bookingSeats
+        .map(bs => bs.seatLabel)
+        .filter(Boolean);
+
+      // 2. booking.seatNumbers
+      const bookingSeatNumbers = Array.isArray(booking.seatNumbers) ? booking.seatNumbers : [];
+
+      // Combine all seat labels
+      const allSeatLabels = Array.from(new Set([...bookingSeatLabels, ...bookingSeatNumbers]));
+
+      // 3. Build ShowSeat query matching ALL sources
+      const showSeatOrConditions = [
+        { 'hold.bookingId': booking._id }
+      ];
+      if (showSeatIds.length > 0) {
+        showSeatOrConditions.push({ _id: { $in: showSeatIds } });
+      }
+      if (allSeatLabels.length > 0) {
+        showSeatOrConditions.push({ label: { $in: allSeatLabels } });
+        showSeatOrConditions.push({ seatLabel: { $in: allSeatLabels } });
+      }
+
       await ShowSeat.updateMany(
-        { show: booking.show?._id || booking.show, 'hold.bookingId': booking._id },
-        { $set: { status: 'available' }, $unset: { hold: '' } },
+        deepTrust({
+          show: showId,
+          $or: showSeatOrConditions
+        }),
+        {
+          $set: { status: 'available', bookedAt: null },
+          $unset: { hold: '' }
+        },
         txOpts
       );
 
-      const seatLabels = booking.seatNumbers || [];
-      if (seatLabels.length > 0) {
-        await ShowSeat.updateMany(
-          deepTrust({ show: booking.show?._id || booking.show, label: { $in: seatLabels } }),
-          { $set: { status: 'available' }, $unset: { hold: '' } },
-          txOpts
-        );
-
+      // Pull from Show.bookedSeats
+      if (allSeatLabels.length > 0) {
         await Show.findByIdAndUpdate(
-          booking.show?._id || booking.show,
-          { $pull: { bookedSeats: { $in: seatLabels } } },
+          showId,
+          deepTrust({ $pull: { bookedSeats: { $in: allSeatLabels } } }),
           txOpts
         );
       }
 
       // Clean up BookingSeat claims so seats can be re-held/re-booked
-      await BookingSeat.deleteMany({ booking: booking._id }, txOpts);
+      await BookingSeat.deleteMany(deepTrust({ booking: booking._id }), txOpts);
 
       const bookingUpdates = {
         status: 'cancelled',
@@ -778,7 +821,7 @@ const cancelBooking = async (req, res) => {
       }
 
       updatedBooking = await Booking.findOneAndUpdate(
-        { _id: booking._id, status: { $in: ['confirmed', 'pending'] } },
+        deepTrust({ _id: booking._id, status: { $in: ['confirmed', 'pending'] } }),
         bookingUpdates,
         { new: true, ...txOpts }
       );
@@ -789,7 +832,7 @@ const cancelBooking = async (req, res) => {
 
       if (refundSummary) {
         await Payment.updateMany(
-          { booking: booking._id, status: 'paid' },
+          deepTrust({ booking: booking._id, status: 'paid' }),
           {
             $set: {
               status: 'partially_refunded',
@@ -802,7 +845,7 @@ const cancelBooking = async (req, res) => {
         );
       } else {
         await Payment.updateMany(
-          { booking: booking._id, status: 'paid' },
+          deepTrust({ booking: booking._id, status: 'paid' }),
           { $set: { status: 'refunded' } },
           txOpts
         );

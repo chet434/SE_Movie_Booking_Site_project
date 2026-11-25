@@ -12,6 +12,8 @@ const {
   holdSeatsSchema,
   confirmBookingSchema,
   createBookingSchema,
+  cancelBookingSchema,
+  cancelBookingParamsSchema
 } = require('../schemas/bookingSchemas');
 
 // V2 endpoints
@@ -28,6 +30,6 @@ router.post('/', deprecated('Use POST /hold + POST /confirm for two-phase bookin
 
 // Per-booking routes
 router.get('/:id', protect, getBookingById);
-router.post('/:id/cancel', protect, cancelBooking);
+router.post('/:id/cancel', validate({ params: cancelBookingParamsSchema, body: cancelBookingSchema }), protect, cancelBooking);
 
 module.exports = router;

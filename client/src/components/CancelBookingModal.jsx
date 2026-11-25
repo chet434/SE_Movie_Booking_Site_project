@@ -90,7 +90,11 @@ const CancelBookingModal = ({ isOpen, onClose, booking, onCancellationSuccess })
       onClose();
     } catch (err) {
       console.error('Cancellation error:', err);
-      const errMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to cancel booking. Please try again.';
+      const errMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to cancel booking. Please try again.';
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -212,8 +216,12 @@ const CancelBookingModal = ({ isOpen, onClose, booking, onCancellationSuccess })
 
           {/* Error Message */}
           {error && (
-            <div className="alert alert-danger py-2 px-3 small mb-0" role="alert">
-              {error}
+            <div
+              className="alert alert-danger py-2 px-3 small mb-0 mt-3 d-flex align-items-center gap-2 border border-danger shadow-sm"
+              role="alert"
+            >
+              <IconAlertTriangle size={16} className="text-danger flex-shrink-0" />
+              <div>{error}</div>
             </div>
           )}
         </div>

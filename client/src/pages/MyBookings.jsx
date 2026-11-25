@@ -66,6 +66,19 @@ const MyBookings = () => {
     }
   };
 
+  const refreshBookingsQuietly = async () => {
+    try {
+      const res = await getMyBookings();
+      const data = res.data?.data || { upcoming: [], past: [] };
+      setBookings({
+        upcoming: Array.isArray(data.upcoming) ? data.upcoming : [],
+        past: Array.isArray(data.past) ? data.past : []
+      });
+    } catch (error) {
+      console.error('Failed to quietly refresh bookings:', error);
+    }
+  };
+
   const handleCancellationSuccess = (updatedBooking) => {
     const bId = updatedBooking.bookingNumber || updatedBooking.bookingId || updatedBooking._id;
     const refAmt = updatedBooking.refundAmount ?? (updatedBooking.totalAmount ? Number((updatedBooking.totalAmount * 0.8).toFixed(2)) : 0);
@@ -75,16 +88,17 @@ const MyBookings = () => {
     });
     setBookings((prev) => ({
       upcoming: prev.upcoming.map((b) =>
-        (b._id === updatedBooking._id || b.bookingNumber === updatedBooking.bookingNumber)
-          ? { ...b, ...updatedBooking, status: 'cancelled' }
+        (String(b._id) === String(updatedBooking._id) || (b.bookingNumber && b.bookingNumber === updatedBooking.bookingNumber) || (b.bookingId && b.bookingId === updatedBooking.bookingId))
+          ? { ...b, ...updatedBooking, status: 'cancelled', bookingStatus: 'cancelled' }
           : b
       ),
       past: prev.past.map((b) =>
-        (b._id === updatedBooking._id || b.bookingNumber === updatedBooking.bookingNumber)
-          ? { ...b, ...updatedBooking, status: 'cancelled' }
+        (String(b._id) === String(updatedBooking._id) || (b.bookingNumber && b.bookingNumber === updatedBooking.bookingNumber) || (b.bookingId && b.bookingId === updatedBooking.bookingId))
+          ? { ...b, ...updatedBooking, status: 'cancelled', bookingStatus: 'cancelled' }
           : b
       )
     }));
+    refreshBookingsQuietly();
   };
 
   const currentBookings = activeTab === 'upcoming' ? bookings.upcoming : bookings.past;
@@ -217,7 +231,7 @@ const MyBookings = () => {
                 const isCancelled = b.status === 'cancelled' || b.bookingStatus === 'cancelled';
                 const isConfirmed = b.status === 'confirmed';
                 const isCancellable = b.isCancellable !== false;
-                const isEligibleForCancel = isConfirmed && (b.cancellationSummary ? b.cancellationSummary.eligible : false);
+                const isEligibleForCancel = !isCancelled && isConfirmed && (b.cancellationSummary ? b.cancellationSummary.eligible : false);
 
                 return (
                   <div key={bookingId || b._id} className="col-12 col-md-6">
@@ -285,7 +299,7 @@ const MyBookings = () => {
                             >
                               <div className="fw-semibold">80% Refund Processed</div>
                               <div>
-                                Paid: ₹{Number(totalPaid).toFixed(2)} &bull; 20% Fee: ₹{Number(b.cancellationFee ?? (totalPaid * 0.2)).toFixed(2)} &bull; Refunded: <strong>₹{Number(b.refundAmount ?? (totalPaid * 0.8)).toFixed(2)}</strong>
+                                Paid: ₹{Number(totalPaid).toFixed(2)} &bull; 20% Fee: ₹{Number(b.cancellationFee ?? (totalPaid * 0.2)).toFixed(2)} &bull; Refunded (80%): <strong>₹{Number(b.refundAmount ?? (totalPaid * 0.8)).toFixed(2)}</strong>
                               </div>
                             </div>
                           )}

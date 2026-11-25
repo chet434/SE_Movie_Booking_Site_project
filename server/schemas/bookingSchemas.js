@@ -63,8 +63,21 @@ const createBookingSchema = z.object({
   simulateFailure: z.boolean().optional().default(false),
 });
 
+/**
+ * POST /api/bookings/:id/cancel
+ */
+const cancelBookingSchema = z.object({
+  reason: z.string().max(250).optional()
+}).optional().default({});
+
+const cancelBookingParamsSchema = z.object({
+  id: z.string().min(1, 'Booking reference or ID is required')
+});
+
 module.exports = {
   holdSeatsSchema,
   confirmBookingSchema,
   createBookingSchema,
+  cancelBookingSchema,
+  cancelBookingParamsSchema
 };
